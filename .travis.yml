@@ -1,0 +1,12 @@
+language: go
+go:
+  - 1.10.x
+  - 1.11.x
+before_install:
+  - go get -v golang.org/x/lint/golint
+
+script:
+  - "mkdir -pv /home/r/go/src/github.com/g4s8"
+  - "ln -snv $PWD /home/r/go/src/github.com/g4s8/gitstrap"
+  - "go build -o /dev/null ."
+  - "gometalinter ."
