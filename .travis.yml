@@ -4,8 +4,9 @@ go:
   - 1.11.x
 before_install:
   - curl -L https://git.io/vp6lP | sh
+  - mv bin $HOME/bin
   - go get -v golang.org/x/lint/golint
 script:
   - "go build -o /dev/null ."
-  - "gometalinter ."
+  - "$HOME/bin/gometalinter ."
 
