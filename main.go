@@ -1,11 +1,11 @@
 package main
 
 import (
-	"./cfg"
 	"bufio"
 	"context"
 	"flag"
 	"fmt"
+	"github.com/g4s8/gitstrap/cfg"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 	"io/ioutil"
