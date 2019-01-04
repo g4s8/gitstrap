@@ -25,6 +25,9 @@ Don't forget to export your `$GOPATH/bin` to your `$PATH` to be able to access t
 or just use full path e.g. `~/go/bin/gitstrap`.
 
 ## Usage
+Before using, make sure you have running `ssh-agent` daemon with imported your github ssh key to be able
+to push, fetch and pull.
+
 To bootstrap new repository:
  1. Create new directory for your project
  2. Write `.gitstrap.yaml` config in project root
