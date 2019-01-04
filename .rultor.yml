@@ -1,0 +1,15 @@
+docker:
+  image: "g4s8/gorultor:latest"
+env:
+  PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  CGO_ENABLED: 0
+merge:
+  script:
+    - "mkdir -pv /home/r/go/src/github.com/g4s8"
+    - "ln -snv $PWD /home/r/go/src/github.com/g4s8/gitstrap"
+    - "go build -o /dev/null ."
+    - "gometalinter ."
+  fast-forward: "no"
+architect:
+  - "g4s8"
+
