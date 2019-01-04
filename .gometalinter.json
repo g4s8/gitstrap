@@ -1,0 +1,26 @@
+{
+  "Deadline": "5m",
+  "EnableGC": true,
+  "Enable": [
+    "deadcode",
+    "gocyclo",
+    "gofmt",
+    "gotype",
+    "golint",
+    "gosimple",
+    "ineffassign",
+    "interfacer",
+    "misspell",
+    "unconvert",
+    "unused",
+    "vet",
+    "varcheck",
+    "maligned",
+    "errcheck",
+    "megacheck",
+    "goconst",
+    "structcheck"
+  ],
+  "Cyclo": 10,
+  "Aggregate": true
+}
