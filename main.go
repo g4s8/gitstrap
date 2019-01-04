@@ -54,7 +54,7 @@ func main() {
 	case "destroy":
 		destroy()
 	default:
-		fmt.Printf("unknown command %s - use create or destroy")
+		fmt.Printf("unknown command %s - use create or destroy\n", cmd)
 		os.Exit(1)
 	}
 }
