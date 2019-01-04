@@ -19,6 +19,11 @@ Gitstrap helps to:
  4. Configure webhooks for Github repo
  5. Invite collaborators
 
+## Install
+Use `go get github.com/g4s8/gitstrap` to install `gitstrap` tool.
+Don't forget to export your `$GOPATH/bin` to your `$PATH` to be able to access this tool
+or just use full path e.g. `~/go/bin/gitstrap`.
+
 ## Usage
 To bootstrap new repository:
  1. Create new directory for your project
