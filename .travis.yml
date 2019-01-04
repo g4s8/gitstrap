@@ -8,5 +8,5 @@ before_install:
   - go get -v golang.org/x/lint/golint
 script:
   - go build -o /dev/null .
-  - /tmp/bin/gometalinter .
+  - env PATH=/tmp/bin:$PATH gometalinter .
 
