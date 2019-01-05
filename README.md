@@ -20,9 +20,23 @@ Gitstrap helps to:
  5. Invite collaborators
 
 ## Install
-Use `go get github.com/g4s8/gitstrap` to install `gitstrap` tool.
-Don't forget to export your `$GOPATH/bin` to your `$PATH` to be able to access this tool
-or just use full path e.g. `~/go/bin/gitstrap`.
+
+### Download binary
+You can download a binary for your platform using [download script](https://github.com/g4s8/gitstrap/blob/master/scripts/download.sh):
+```sh
+curl -L https://raw.githubusercontent.com/g4s8/gitstrap/master/scripts/download.sh | sh
+```
+or you can download it manually from [releases](https://github.com/g4s8/gitstrap/releases) page.
+
+### Get sources
+If you have `go` installed, you can use `go get github.com/g4s8/gitstrap` to download  `gitstrap` tool and build a binary.
+
+Alternatively you can clone it from Github:
+```sh
+git clone --depth=1 https://github.com/g4s8/gitstrap.git
+cd gitstrap
+go build .
+```
 
 ## Usage
 Before using, make sure you have running `ssh-agent` daemon with imported your github ssh key to be able
