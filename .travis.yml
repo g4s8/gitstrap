@@ -9,4 +9,11 @@ before_install:
 script:
   - go build -o /dev/null .
   - env PATH=/tmp/bin:$PATH gometalinter .
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: curl -sL https://git.io/goreleaser | bash
+  on:
+    tags: true
+    condition: $TRAVIS_OS_NAME = linux
 

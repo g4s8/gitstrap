@@ -10,6 +10,9 @@ merge:
     - "go build -o /dev/null ."
     - "gometalinter ."
   fast-forward: "no"
+release:
+  script: |-
+    [[ "${tag}" =~ ^[0-9]+(\.[0-9]+)*$ ]] || exit -1
 architect:
   - "g4s8"
 
