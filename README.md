@@ -130,7 +130,3 @@ Command line tool to bootstrap Github repository
 [![PDD status](http://www.0pdd.com/svg?name=g4s8/gitstrap)](http://www.0pdd.com/p?name=g4s8/gitstrap)
 [![License](https://img.shields.io/github/license/g4s8/gitstrap.svg?style=flat-square)](https://github.com/g4s8/gitstrap/blob/master/LICENSE)
 ```
-
-## Contribution
-Fork repository, clone it, make changes,
-push to new branch and submit a pull request.
