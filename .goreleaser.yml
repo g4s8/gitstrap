@@ -4,6 +4,8 @@ before:
 builds:
 - env:
   - CGO_ENABLED=0
+- ldflags:
+  - -X "main.buildVersion={{.Env.TRAVIS_TAG}}{{.Env.TRAVIS_BUILD_NUMBER}}" -X "main.buildCommit={{.Env.TRAVIS_COMMIT}}"
 archive:
   replacements:
     darwin: Darwin

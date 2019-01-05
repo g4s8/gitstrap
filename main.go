@@ -16,17 +16,28 @@ import (
 )
 
 var (
-	token string
-	conf  *cfg.YamlConfig
-	ctx   context.Context
-	cli   *github.Client
+	token        string
+	conf         *cfg.YamlConfig
+	ctx          context.Context
+	cli          *github.Client
+	buildVersion string
+	buildCommit  string
+	buildDate    string
 )
 
 func main() {
 	var config string
+	var flagVersion bool
 	flag.StringVar(&token, "token", "", "Github API token")
 	flag.StringVar(&config, "config", ".gitstrap.yaml", "Gitstrap config (default .gitstrap)")
+	flag.BoolVar(&flagVersion, "version", false, "Show version")
 	flag.Parse()
+	if flagVersion {
+		fmt.Printf("gitstrap version: %s\n"+
+			"commit hash: %s\n"+
+			"build date: %s\n", buildVersion, buildCommit, buildDate)
+		os.Exit(0)
+	}
 	if token == "" {
 		flagErr("Github token required")
 	}
