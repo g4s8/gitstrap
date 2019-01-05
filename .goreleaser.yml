@@ -1,11 +1,9 @@
-# This is an example goreleaser.yaml file with some sane defaults.
-# Make sure to check the documentation at http://goreleaser.com
-before:
 builds:
-- env:
-  - CGO_ENABLED=0
-- ldflags:
-  - -X "main.buildVersion={{.Env.TRAVIS_TAG}}{{.Env.TRAVIS_BUILD_NUMBER}}" -X "main.buildCommit={{.Env.TRAVIS_COMMIT}}"
+  -
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X "main.buildVersion={{.Env.TRAVIS_TAG}}{{.Env.TRAVIS_BUILD_NUMBER}}" -X "main.buildCommit={{.Env.TRAVIS_COMMIT}}"
 archive:
   replacements:
     darwin: Darwin
