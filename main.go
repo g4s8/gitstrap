@@ -103,7 +103,6 @@ func create() {
 	for _, t := range conf.Gitstrap.Templates {
 		tpl := template.New(t.Name)
 		location := os.ExpandEnv(t.Location)
-		fmt.Println("location: ", location)
 		tf, err := os.Open(location)
 		fatal(fmt.Sprintf("Failed to open template file %s", t.Location), err)
 		data, err := ioutil.ReadAll(bufio.NewReader(tf))
