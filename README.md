@@ -1,5 +1,5 @@
-# Gitstrap.
-Command line tool to bootstrap Github repository
+# Gitstrap
+Command line tool to bootstrap Github repository.
 
 
 [![DevOps By Rultor.com](http://www.rultor.com/b/g4s8/gitstrap)](http://www.rultor.com/p/g4s8/gitstrap)
