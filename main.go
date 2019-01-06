@@ -5,14 +5,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/g4s8/gitstrap/cfg"
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 	"text/template"
+
+	"github.com/g4s8/gitstrap/cfg"
+	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -101,7 +102,8 @@ func create() {
 	tctx := &templateContext{&repo, &conf.Gitstrap}
 	for _, t := range conf.Gitstrap.Templates {
 		tpl := template.New(t.Name)
-		tf, err := os.Open(t.Location)
+		location := os.ExpandEnv(t.Location)
+		tf, err := os.Open(location)
 		fatal(fmt.Sprintf("Failed to open template file %s", t.Location), err)
 		data, err := ioutil.ReadAll(bufio.NewReader(tf))
 		fatal(fmt.Sprintf("Failed to read template file %s", t.Location), err)
@@ -216,7 +218,8 @@ func prompt(msg string) bool {
 }
 
 func runCmd(c *exec.Cmd) {
-	if err := c.Run(); err != nil {
+	if output, err := c.CombinedOutput(); err != nil {
+		fmt.Println(string(output))
 		if _, xerr := fmt.Fprintf(os.Stderr, "command %s failed: %s\n", c.Path, err); xerr != nil {
 			fmt.Printf("Failed to print error: %s", xerr)
 		}
