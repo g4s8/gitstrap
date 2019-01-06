@@ -8,11 +8,13 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"text/template"
 
 	"github.com/g4s8/gitstrap/cfg"
 	"github.com/google/go-github/github"
+	"github.com/srvc/fail"
 	"golang.org/x/oauth2"
 )
 
@@ -98,6 +100,30 @@ func create() {
 
 	gitSync(&repo)
 
+	if dir := os.ExpandEnv(conf.Gitstrap.TemplatesDir); dir != "" {
+		files, err := findAllFileWithPath(dir, []string{".git"})
+		fatal(fmt.Sprintf("Failed to findAllFileWithPath to %v", dir), err)
+		tctx := &templateContext{&repo, &conf.Gitstrap}
+
+		for _, file := range files {
+			tpl := template.New(file)
+			location := os.ExpandEnv(file)
+			tf, err := os.Open(location)
+			fatal(fmt.Sprintf("Failed to open template file %s", file), err)
+			data, err := ioutil.ReadAll(bufio.NewReader(tf))
+			fatal(fmt.Sprintf("Failed to read template file %s", file), err)
+			err = tf.Close()
+			fatal("Failed to close template file", err)
+			_, err = tpl.Parse(string(data))
+			fatal(fmt.Sprintf("Failed to parse template %s", tpl.Name()), err)
+			fout, err := os.Create(file)
+			fatal(fmt.Sprintf("Failed to open output file for template %s", tpl.Name()), err)
+			err = tpl.Execute(fout, tctx)
+			fatal(fmt.Sprintf("Failed to execute template %s", tpl.Name()), err)
+			fmt.Printf("Template %s applied\n", tpl.Name())
+		}
+	}
+
 	// apply templates
 	tctx := &templateContext{&repo, &conf.Gitstrap}
 	for _, t := range conf.Gitstrap.Templates {
@@ -124,6 +150,35 @@ func create() {
 	addCollaborators(me, &repo, &conf.Gitstrap)
 
 	fmt.Println("Create: done")
+}
+
+func findAllFileWithPath(dir string, ignoredDirs []string) ([]string, error) {
+	for _, ignored := range ignoredDirs {
+		if strings.HasSuffix(dir, ignored) {
+			return []string{}, nil
+		}
+	}
+
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return []string{}, fail.Wrap(err)
+	}
+
+	var paths []string
+	for _, file := range files {
+		currentFileNameWithPath := filepath.Join(dir, file.Name())
+		if file.IsDir() {
+			findedFiles, err := findAllFileWithPath(currentFileNameWithPath, ignoredDirs)
+			if err != nil {
+				return paths, fail.Wrap(err)
+			}
+			paths = append(paths, findedFiles...)
+			continue
+		}
+		paths = append(paths, currentFileNameWithPath)
+	}
+
+	return paths, nil
 }
 
 func destroy() {
