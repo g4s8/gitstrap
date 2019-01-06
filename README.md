@@ -1,8 +1,9 @@
 # Gitstrap
 Command line tool to bootstrap Github repository.
 
-
+[![Donate via Zerocracy](https://www.0crat.com/contrib-badge/CF7JL4282.svg)](https://www.0crat.com/contrib/CF7JL4282)
 [![DevOps By Rultor.com](http://www.rultor.com/b/g4s8/gitstrap)](http://www.rultor.com/p/g4s8/gitstrap)
+[![Managed by Zerocracy](https://www.0crat.com/badge/CF7JL4282.svg)](https://www.0crat.com/p/CF7JL4282)
 
 [![Build Status](https://img.shields.io/travis/g4s8/gitstrap.svg?style=flat-square)](https://travis-ci.org/g4s8/gitstrap)
 
