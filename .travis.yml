@@ -9,12 +9,10 @@ before_install:
   - go get -v "github.com/google/go-github/github"
   - go get -v "golang.org/x/oauth2"
   - go get -v "gopkg.in/yaml.v2"
-
 script:
   - go build -o /dev/null .
   - go build -o /dev/null ./cmd/gitstrap
   - env PATH=/tmp/bin:$PATH gometalinter .
-  - echo $TRAVIS_GO_VERSION
 deploy:
 - provider: script
   skip_cleanup: true
@@ -22,4 +20,5 @@ deploy:
   on:
     tags: true
     condition: $TRAVIS_OS_NAME = linux
+    condition: $TRAVIS_GO_VERSION = 1.11.x
 
