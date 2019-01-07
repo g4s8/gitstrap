@@ -9,6 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -42,6 +43,7 @@ type Config struct {
 		Templates []struct {
 			Name     string `yaml:"name"`
 			Location string `yaml:"location"`
+			URL      string `yaml:"url"`
 		} `yaml:"templates"`
 		Params map[string]string `yaml:"params"`
 	} `yaml:"gitstrap"`
@@ -196,16 +198,18 @@ func (strap *strapCtx) applyTemplates(repo *github.Repository) error {
 	tctx := &templateContext{repo, &strap.cfg.Gitstrap}
 	for _, t := range strap.cfg.Gitstrap.Templates {
 		tpl := template.New(t.Name)
-		tf, err := os.Open(t.Location)
-		if err != nil {
-			return fmt.Errorf("failed to open template file %s: %s", t.Location, err)
-		}
-		data, err := ioutil.ReadAll(bufio.NewReader(tf))
-		if err != nil {
-			return fmt.Errorf("failed to read template file %s: %s", t.Location, err)
-		}
-		if err = tf.Close(); err != nil {
-			return fmt.Errorf("failed to close template file %s: %s", t.Location, err)
+		var data []byte
+		var err error
+		if t.Location != "" {
+			data, err = readTemplate(t.Location)
+			if err != nil {
+				return err
+			}
+		} else if t.URL != "" {
+			data, err = downloadTemplate(t.URL)
+			if err != nil {
+				return err
+			}
 		}
 		if _, err = tpl.Parse(string(data)); err != nil {
 			return fmt.Errorf("failed to parse template %s: %s", tpl.Name(), err)
@@ -220,6 +224,36 @@ func (strap *strapCtx) applyTemplates(repo *github.Repository) error {
 		fmt.Printf("Template %s applied\n", tpl.Name())
 	}
 	return nil
+}
+
+func readTemplate(name string) ([]byte, error) {
+	tf, err := os.Open(name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open template file %s: %s", name, err)
+	}
+	data, err := ioutil.ReadAll(bufio.NewReader(tf))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read template file %s: %s", name, err)
+	}
+	if err = tf.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close template file %s: %s", name, err)
+	}
+	return data, nil
+}
+
+func downloadTemplate(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download template from %s: %s", url, err)
+	}
+	data, err := ioutil.ReadAll(bufio.NewReader(resp.Body))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read template body from %s: %s", url, err)
+	}
+	if err := resp.Body.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close connection from %s: %s", url, err)
+	}
+	return data, nil
 }
 
 func (strap *strapDestr) Run(opt Options) error {
