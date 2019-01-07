@@ -14,6 +14,7 @@ script:
   - go build -o /dev/null .
   - go build -o /dev/null ./cmd/gitstrap
   - env PATH=/tmp/bin:$PATH gometalinter .
+  - echo $TRAVIS_GO_VERSION
 deploy:
 - provider: script
   skip_cleanup: true
