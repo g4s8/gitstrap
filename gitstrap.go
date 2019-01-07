@@ -62,11 +62,11 @@ func (y *Config) ParseFile(name string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to open config file: %s", err)
 	}
-	defer f.Close()
 	if err = y.ParseReader(bufio.NewReader(f)); err != nil {
 		return err
 	}
-	return nil
+	err = f.Close()
+	return err
 }
 
 // Options - gitstrap options
@@ -149,69 +149,76 @@ func (strap *strapCreate) Run(opt Options) error {
 	if err != nil {
 		return strap.err("failed to get current user", err)
 	}
-
-	// find or create repo
-	fmt.Printf("Looking up for repo %s/%s... ", *me.Login, *repo.Name)
-	r, resp, _ := strap.base.cli.Repositories.Get(strap.base.ctx, *me.Login, *repo.Name)
-	exists := resp.StatusCode == 200
-	if !exists && prompt("repository doesn't exist. Create?") {
-		r, _, err := strap.base.cli.Repositories.Create(strap.base.ctx, "", repo)
-		if err != nil {
-			return strap.err("failed to create repo", err)
-		}
-		repo = r
-		fmt.Printf("Github repository %s has been created\n", *repo.Name)
-	} else if exists {
-		fmt.Println("found")
-		repo = r
+	repo, err = strap.base.createRepo(*me.Login, repo)
+	if err != nil {
+		return strap.err("failed to create github repo", err)
 	}
-
 	if err := gitSync(repo); err != nil {
 		return strap.err("failed to sync git repo", err)
 	}
-
-	// apply templates
-	tctx := &templateContext{repo, &strap.base.cfg.Gitstrap}
-	for _, t := range strap.base.cfg.Gitstrap.Templates {
-		tpl := template.New(t.Name)
-		tf, err := os.Open(t.Location)
-		if err != nil {
-			return strap.err(fmt.Sprintf("failed to open template file %s", t.Location), err)
-		}
-		data, err := ioutil.ReadAll(bufio.NewReader(tf))
-		if err != nil {
-			return strap.err(fmt.Sprintf("failed to read template file %s", t.Location), err)
-		}
-		if err = tf.Close(); err != nil {
-			strap.err("failed to close template file", err)
-		}
-		if _, err = tpl.Parse(string(data)); err != nil {
-			strap.err(fmt.Sprintf("failed to parse template %s", tpl.Name()), err)
-		}
-		fout, err := os.Create(t.Name)
-		if err != nil {
-			strap.err(fmt.Sprintf("failed to open output file for template %s", tpl.Name()), err)
-		}
-		if err = tpl.Execute(fout, tctx); err != nil {
-			strap.err(fmt.Sprintf("failed to execute template %s", tpl.Name()), err)
-		}
-		fmt.Printf("Template %s applied\n", tpl.Name())
+	if err := strap.base.applyTemplates(repo); err != nil {
+		return strap.err("failed to apply templates", err)
 	}
-
 	if err := gitPush(repo); err != nil {
 		return strap.err("failed to push to remote", err)
 	}
-
 	if err := strap.base.addHooks(me, repo); err != nil {
 		return strap.err("failed to add web-hooks", err)
 	}
-
 	if err := strap.base.addCollaborators(me, repo); err != nil {
 		return strap.err("failed to add collaborators", err)
 	}
 
 	fmt.Println("Create: done")
 
+	return nil
+}
+
+func (strap *strapCtx) createRepo(owner string, repo *github.Repository) (*github.Repository, error) {
+	fmt.Printf("Looking up for repo %s/%s... ", owner, *repo.Name)
+	r, resp, _ := strap.cli.Repositories.Get(strap.ctx, owner, *repo.Name)
+	exists := resp.StatusCode == 200
+	if !exists && prompt("repository doesn't exist. Create?") {
+		r, _, err := strap.cli.Repositories.Create(strap.ctx, "", repo)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create repo: %s", err)
+		}
+		fmt.Printf("Github repository %s has been created\n", *repo.Name)
+		return r, nil
+	} else if exists {
+		fmt.Println("found")
+	}
+	return r, nil
+}
+
+func (strap *strapCtx) applyTemplates(repo *github.Repository) error {
+	// apply templates
+	tctx := &templateContext{repo, &strap.cfg.Gitstrap}
+	for _, t := range strap.cfg.Gitstrap.Templates {
+		tpl := template.New(t.Name)
+		tf, err := os.Open(t.Location)
+		if err != nil {
+			return fmt.Errorf("failed to open template file %s: %s", t.Location, err)
+		}
+		data, err := ioutil.ReadAll(bufio.NewReader(tf))
+		if err != nil {
+			return fmt.Errorf("failed to read template file %s: %s", t.Location, err)
+		}
+		if err = tf.Close(); err != nil {
+			return fmt.Errorf("failed to close template file %s: %s", t.Location, err)
+		}
+		if _, err = tpl.Parse(string(data)); err != nil {
+			return fmt.Errorf("failed to parse template %s: %s", tpl.Name(), err)
+		}
+		fout, err := os.Create(t.Name)
+		if err != nil {
+			return fmt.Errorf("failed to open output file for template %s: %s", tpl.Name(), err)
+		}
+		if err = tpl.Execute(fout, tctx); err != nil {
+			return fmt.Errorf("failed to execute template %s: %s", tpl.Name(), err)
+		}
+		fmt.Printf("Template %s applied\n", tpl.Name())
+	}
 	return nil
 }
 
@@ -232,11 +239,11 @@ func (strap *strapDestr) Run(opt Options) error {
 		os.Exit(1)
 	}
 	if _, err = strap.base.cli.Repositories.Delete(strap.base.ctx, *me.Login, name); err != nil {
-		strap.err("failed to delete repository", err)
+		return strap.err("failed to delete repository", err)
 	}
 	fmt.Printf("Github repository %s/%s has been deleted\n", *me.Login, name)
 	if err = os.RemoveAll(".git"); err != nil {
-		strap.err("Failed to remove git directory", err)
+		return strap.err("Failed to remove git directory", err)
 	}
 	fmt.Println("Local git repository has been deleted")
 

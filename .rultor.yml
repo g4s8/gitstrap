@@ -8,7 +8,9 @@ merge:
     - "mkdir -pv /home/r/go/src/github.com/g4s8"
     - "ln -snv $PWD /home/r/go/src/github.com/g4s8/gitstrap"
     - "go build -o /dev/null ."
+    - "go build -o /dev/null ./cmd/gitstrap"
     - "gometalinter ."
+    - "gometalinter ./cmd/gitstrap"
   fast-forward: "no"
 release:
   script: |-
