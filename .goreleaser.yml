@@ -1,5 +1,6 @@
 builds:
   -
+    main: ./cmd/gitstrap/main.go
     env:
       - CGO_ENABLED=0
     ldflags:

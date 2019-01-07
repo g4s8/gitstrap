@@ -11,7 +11,9 @@ merge:
     - "go get golang.org/x/oauth2"
     - "go get gopkg.in/yaml.v2"
     - "go build -o /dev/null ."
+    - "go build -o /dev/null ./cmd/gitstrap"
     - "gometalinter ."
+    - "gometalinter ./cmd/gitstrap"
   fast-forward: "no"
 release:
   script: |-

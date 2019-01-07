@@ -12,6 +12,7 @@ before_install:
 
 script:
   - go build -o /dev/null .
+  - go build -o /dev/null ./cmd/gitstrap
   - env PATH=/tmp/bin:$PATH gometalinter .
 deploy:
 - provider: script
