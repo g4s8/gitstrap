@@ -145,13 +145,17 @@ func (strap *strapCreate) Run(opt Options) error {
 		Description: strap.base.cfg.Gitstrap.Github.Repo.Description,
 		Private:     strap.base.cfg.Gitstrap.Github.Repo.Private,
 	}
-
 	// find current user
 	me, _, err := strap.base.cli.Users.Get(strap.base.ctx, "")
 	if err != nil {
 		return strap.err("failed to get current user", err)
 	}
-	repo, err = strap.base.createRepo(*me.Login, repo)
+	org, hasOrg := opt["org"]
+	owner := *me.Login
+	if hasOrg {
+		owner = org
+	}
+	repo, err = strap.base.createRepo(*me.Login, repo, opt)
 	if err != nil {
 		return strap.err("failed to create github repo", err)
 	}
@@ -164,10 +168,10 @@ func (strap *strapCreate) Run(opt Options) error {
 	if err := gitPush(repo); err != nil {
 		return strap.err("failed to push to remote", err)
 	}
-	if err := strap.base.addHooks(me, repo); err != nil {
+	if err := strap.base.addHooks(owner, repo); err != nil {
 		return strap.err("failed to add web-hooks", err)
 	}
-	if err := strap.base.addCollaborators(me, repo); err != nil {
+	if err := strap.base.addCollaborators(owner, repo); err != nil {
 		return strap.err("failed to add collaborators", err)
 	}
 
@@ -176,12 +180,21 @@ func (strap *strapCreate) Run(opt Options) error {
 	return nil
 }
 
-func (strap *strapCtx) createRepo(owner string, repo *github.Repository) (*github.Repository, error) {
+func (strap *strapCtx) createRepo(owner string, repo *github.Repository,
+	opt Options) (*github.Repository, error) {
+	org, hasOrg := opt["org"]
+	if hasOrg {
+		owner = org
+	}
 	fmt.Printf("Looking up for repo %s/%s... ", owner, *repo.Name)
 	r, resp, _ := strap.cli.Repositories.Get(strap.ctx, owner, *repo.Name)
 	exists := resp.StatusCode == 200
 	if !exists && prompt("repository doesn't exist. Create?") {
-		r, _, err := strap.cli.Repositories.Create(strap.ctx, "", repo)
+		o := ""
+		if hasOrg {
+			o = org
+		}
+		r, _, err := strap.cli.Repositories.Create(strap.ctx, o, repo)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create repo: %s", err)
 		}
@@ -264,18 +277,22 @@ func (strap *strapDestr) Run(opt Options) error {
 	if err != nil {
 		return strap.err("failed to get current user", err)
 	}
+	owner := *me.Login
+	if o, has := opt["org"]; has {
+		owner = o
+	}
 	name := *strap.base.cfg.Gitstrap.Github.Repo.Name
-	fmt.Printf("Looking up for repo %s/%s... ", *me.Login, name)
-	_, resp, _ := strap.base.cli.Repositories.Get(strap.base.ctx, *me.Login, name)
+	fmt.Printf("Looking up for repo %s/%s... ", owner, name)
+	_, resp, _ := strap.base.cli.Repositories.Get(strap.base.ctx, owner, name)
 	exists := resp.StatusCode == 200
 	if !exists {
-		fmt.Printf("repository %s/%s not found\n", *me.Login, name)
+		fmt.Printf("repository %s/%s not found\n", owner, name)
 		os.Exit(1)
 	}
-	if _, err = strap.base.cli.Repositories.Delete(strap.base.ctx, *me.Login, name); err != nil {
+	if _, err = strap.base.cli.Repositories.Delete(strap.base.ctx, owner, name); err != nil {
 		return strap.err("failed to delete repository", err)
 	}
-	fmt.Printf("Github repository %s/%s has been deleted\n", *me.Login, name)
+	fmt.Printf("Github repository %s/%s has been deleted\n", owner, name)
 	if err = os.RemoveAll(".git"); err != nil {
 		return strap.err("Failed to remove git directory", err)
 	}
@@ -286,7 +303,7 @@ func (strap *strapDestr) Run(opt Options) error {
 	return nil
 }
 
-func (strap *strapCtx) addHooks(me *github.User, repo *github.Repository) error {
+func (strap *strapCtx) addHooks(owner string, repo *github.Repository) error {
 	for _, h := range strap.cfg.Gitstrap.Github.Repo.Hooks {
 		ghkook := &github.Hook{
 			URL:    &h.URL,
@@ -296,7 +313,7 @@ func (strap *strapCtx) addHooks(me *github.User, repo *github.Repository) error 
 		ghkook.Config = make(map[string]interface{})
 		ghkook.Config["url"] = h.URL
 		ghkook.Config["content_type"] = h.Type
-		if _, _, err := strap.cli.Repositories.CreateHook(strap.ctx, *me.Login, *repo.Name, ghkook); err != nil {
+		if _, _, err := strap.cli.Repositories.CreateHook(strap.ctx, owner, *repo.Name, ghkook); err != nil {
 			return err
 		}
 		fmt.Printf("Webhook %s has been configured\n", h.URL)
@@ -304,9 +321,9 @@ func (strap *strapCtx) addHooks(me *github.User, repo *github.Repository) error 
 	return nil
 }
 
-func (strap *strapCtx) addCollaborators(me *github.User, repo *github.Repository) error {
+func (strap *strapCtx) addCollaborators(owner string, repo *github.Repository) error {
 	for _, clb := range strap.cfg.Gitstrap.Github.Repo.Collaborators {
-		if _, err := strap.cli.Repositories.AddCollaborator(strap.ctx, *me.Login, *repo.Name, clb, nil); err != nil {
+		if _, err := strap.cli.Repositories.AddCollaborator(strap.ctx, owner, *repo.Name, clb, nil); err != nil {
 			return err
 		}
 		fmt.Printf("Collaborator %s has been added\n", clb)

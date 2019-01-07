@@ -51,6 +51,9 @@ To bootstrap new repository:
 
 To remove repository (keep source files) run `gitstrap -token=your-api-token destroy`
 
+To create or destroy a repo for an organization make sure you have permissions to create
+or delete repositories and use `-org=orgname` gitstrap option.
+
 ## Configuration
 The default configuration file is `.gitstrap.yaml`, you can specify another file with `-config=my-config.yaml` option.
 
