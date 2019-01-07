@@ -89,8 +89,8 @@ gitstrap:
     templates:
           # file name in repository
         - name: "README.md"
-          # template file name
-          location: "/home/g4s8/.gitstrap/README.md"
+          # template url
+          url: "https://raw.githubusercontent.com/g4s8/gitstrap/master/templates/README.md"
         - name: "LICENSE"
           location: "/home/g4s8/.gitstrap/LICENSE.mit"
     # (optional) these params can be accessed from template, just a key-value pairs
