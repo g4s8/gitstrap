@@ -15,10 +15,11 @@ var (
 )
 
 func main() {
-	var config, token string
+	var config, token, org string
 	var ver bool
 	flag.StringVar(&token, "token", "", "Github API token")
 	flag.StringVar(&config, "config", ".gitstrap.yaml", "Gitstrap config (default .gitstrap)")
+	flag.StringVar(&org, "org", "", "Github organization (optinal)")
 	flag.BoolVar(&ver, "version", false, "Show version")
 	flag.Parse()
 	if ver {
@@ -36,7 +37,6 @@ func main() {
 			"You should start it before gitstrap and add correct ssh key to be able access Github repo via git")
 		os.Exit(1)
 	}
-
 	cfg := &gitstrap.Config{}
 	if err := cfg.ParseFile(config); err != nil {
 		fatal(err)
@@ -47,6 +47,9 @@ func main() {
 		fatal(err)
 	}
 	options := gitstrap.Options(make(map[string]string))
+	if org != "" {
+		options["org"] = org
+	}
 	if err = g.Run(options); err != nil {
 		fatal(err)
 	}
