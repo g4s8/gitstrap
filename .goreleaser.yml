@@ -16,6 +16,16 @@ archive:
     windows: Windows
     386: i386
     amd64: x86_64
+brew:
+  github:
+    owner: g4s8
+    name: .tap
+  commit_author:
+    name: goreleaser
+    email: g4s8.public+tap@gmail.com
+  homepage: "https://github.com/g4s8/gitstrap"
+  dependencies:
+    - git
 checksum:
   name_template: 'checksums.txt'
 snapshot:
