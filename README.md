@@ -29,6 +29,13 @@ curl -L https://raw.githubusercontent.com/g4s8/gitstrap/master/scripts/download.
 ```
 or you can download it manually from [releases](https://github.com/g4s8/gitstrap/releases) page.
 
+### Homebrew
+On macOS you can install it using `brew` tool:
+```sh
+brew tap g4s8/.tap https://github.com/g4s8/.tap
+brew install g4s8/.tap/gitstrap
+```
+
 ### Get sources
 If you have `go` installed, you can use `go get github.com/g4s8/gitstrap` to download  `gitstrap` tool and build a binary.
 
