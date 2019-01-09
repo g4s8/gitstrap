@@ -24,6 +24,7 @@ brew:
     name: goreleaser
     email: g4s8.public+tap@gmail.com
   homepage: "https://github.com/g4s8/gitstrap"
+  folder: Formula
   dependencies:
     - git
 checksum:
