@@ -29,6 +29,13 @@ curl -L https://raw.githubusercontent.com/g4s8/gitstrap/master/scripts/download.
 ```
 or you can download it manually from [releases](https://github.com/g4s8/gitstrap/releases) page.
 
+### Gentoo
+Use my repo [Layman](https://wiki.gentoo.org/wiki/Layman) overlay:
+```sh
+sudo layman -o https://raw.githubusercontent.com/g4s8-overlay/layman/master/repositories.xml -a g4s8
+sudo emerge -av dev-vcs/gitstrap
+```
+
 ### Homebrew
 On macOS you can install it using `brew` tool:
 ```sh
