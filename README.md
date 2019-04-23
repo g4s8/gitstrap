@@ -11,12 +11,9 @@
 
 This tool automates routine operations when creating new Github repository.
 It can create and configure Github repository from `yaml` configuration file.
-Gitstrap helps to:
- 1. Create new repository on Github
- 2. Sync with local directory
- 3. Apply templates (such as README with badges, CI configs, LICENSE stuff, etc)
- 4. Configure webhooks for Github repo
- 5. Invite collaborators
+Gitstrap helps to: 1) create new repository on Github 2) sync with local directory
+3) apply templates, such as README with badges, CI configs, LICENSE stuff, etc
+4) configure webhooks for Github repo 5) invite collaborators
 
 ## How to use
 
