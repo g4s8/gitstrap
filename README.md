@@ -1,5 +1,4 @@
 # Gitstrap
-Command line tool to bootstrap Github repository.
 
 [![Donate via Zerocracy](https://www.0crat.com/contrib-badge/CF7JL4282.svg)](https://www.0crat.com/contrib/CF7JL4282)
 [![DevOps By Rultor.com](http://www.rultor.com/b/g4s8/gitstrap)](http://www.rultor.com/p/g4s8/gitstrap)
@@ -10,57 +9,42 @@ Command line tool to bootstrap Github repository.
 [![PDD status](http://www.0pdd.com/svg?name=g4s8/gitstrap)](http://www.0pdd.com/p?name=g4s8/gitstrap)
 [![License](https://img.shields.io/github/license/g4s8/gitstrap.svg?style=flat-square)](https://github.com/g4s8/gitstrap/blob/master/LICENSE)
 
-## About
 This tool automates routine operations when creating new Github repository.
 It can create and configure Github repository from `yaml` configuration file.
-Gitstrap helps to:
- 1. Create new repository on Github
- 2. Sync with local directory
- 3. Apply templates (such as README with badges, CI configs, LICENSE stuff, etc)
- 4. Configure webhooks for Github repo
- 5. Invite collaborators
+Gitstrap helps to: 1) create new repository on Github 2) sync with local directory
+3) apply templates, such as README with badges, CI configs, LICENSE stuff, etc
+4) configure webhooks for Github repo 5) invite collaborators
 
-## Install
+## How to use
 
-### Download binary
-You can download a binary for your platform using [download script](https://github.com/g4s8/gitstrap/blob/master/scripts/download.sh):
+First you need to install it.
+
+To get binary for your platform use [download script](https://github.com/g4s8/gitstrap/blob/master/scripts/download.sh):
 ```sh
 curl -L https://raw.githubusercontent.com/g4s8/gitstrap/master/scripts/download.sh | sh
 ```
-or you can download it manually from [releases](https://github.com/g4s8/gitstrap/releases) page.
 
-### Gentoo
-Use my repo [Layman](https://wiki.gentoo.org/wiki/Layman) overlay:
+For Gentoo Linux you can merge it from my repo [Layman](https://wiki.gentoo.org/wiki/Layman) overlay:
 ```sh
 sudo layman -o https://raw.githubusercontent.com/g4s8-overlay/layman/master/repositories.xml -a g4s8
 sudo emerge -av dev-vcs/gitstrap
 ```
 
-### Homebrew
-On macOS you can install it using `brew` tool:
+On MacOS you can install it using `brew` tool:
 ```sh
 brew tap g4s8/.tap https://github.com/g4s8/.tap
 brew install g4s8/.tap/gitstrap
 ```
 
-### Get sources
-If you have `go` installed, you can use `go get github.com/g4s8/gitstrap` to download  `gitstrap` tool and build a binary.
+Alternatively, you can build it using `go get github.com/g4s8/gitstrap`
 
-Alternatively you can clone it from Github:
-```sh
-git clone --depth=1 https://github.com/g4s8/gitstrap.git
-cd gitstrap
-go build .
-```
-
-## Usage
-Before using, make sure you have running `ssh-agent` daemon with imported your github ssh key to be able
-to push, fetch and pull.
+*Before using, make sure you have running `ssh-agent` daemon with imported ssh key for Github
+to be able to push, fetch and pull.*
 
 To bootstrap new repository:
  1. Create new directory for your project
  2. Write `.gitstrap.yaml` config in project root
- 3. Create Github API token with repo permissions (if doesn't exist)
+ 3. Create Github API token with repo permissions (if doesn't exist, need's to be done once)
  4. Run `gitstrap -token=your-api-token create`
 
 To remove repository (keep source files) run `gitstrap -token=your-api-token destroy`
@@ -71,10 +55,10 @@ or delete repositories and use `-org=orgname` gitstrap option.
 ## Configuration
 The default configuration file is `.gitstrap.yaml`, you can specify another file with `-config=my-config.yaml` option.
 
-Each config should include `gitstrap` key with `version` `v1`. 
-`gitstrap` section must include `github` section and may include `templates` and `params` sections:
+There's sample config yaml:
 ```yaml
 gitstrap:
+    # gitstrap config version, should be v1
     version: v1
     github:
         repo:
@@ -82,7 +66,7 @@ gitstrap:
             name: gitstrap
             # github repository description
             description: "Command line tool to bootstrap Github repository"
-            # (optional, default false) true if private
+            # true if private (optional, default false) 
             private: false
             # github webhooks
             hooks:
@@ -93,13 +77,13 @@ gitstrap:
                   # events to send (see github docs)
                   events:
                       - push
-                  # (optional, default true) false to create webhook in inactive state
+                  # false to create webhook in inactive state (optional, default true) 
                   active: true
             # github logins to add as collaborators
             collaborators:
                 - "rultor"
                 - "0pdd"
-    # (optional) templates to apply
+    # (optional) templates to apply, see Templates README section
     templates:
           # file name in repository
         - name: "README.md"
