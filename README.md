@@ -62,7 +62,7 @@ gitstrap:
     version: v1
     github:
         repo:
-            # github repository name
+            # github repository name (optional, current directory name if empty)
             name: gitstrap
             # github repository description
             description: "Command line tool to bootstrap Github repository"
