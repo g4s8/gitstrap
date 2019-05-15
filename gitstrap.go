@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/g4s8/gopwd"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
@@ -281,7 +282,15 @@ func (strap *strapDestr) Run(opt Options) error {
 	if o, has := opt["org"]; has {
 		owner = o
 	}
-	name := *strap.base.cfg.Gitstrap.Github.Repo.Name
+	var name string
+	if strap.base.cfg.Gitstrap.Github.Repo.Name != nil {
+		name = *strap.base.cfg.Gitstrap.Github.Repo.Name
+	} else {
+		name, err = gopwd.Name()
+		if err != nil {
+			return strap.err("Failed to get PWD", err)
+		}
+	}
 	fmt.Printf("Looking up for repo %s/%s... ", owner, name)
 	_, resp, _ := strap.base.cli.Repositories.Get(strap.base.ctx, owner, name)
 	exists := resp.StatusCode == 200
@@ -350,7 +359,9 @@ func gitPush(repo *github.Repository) error {
 		if err := exec.Command("git", "add", ".").Run(); err != nil {
 			return err
 		}
-		if err := exec.Command("git", "commit", "-m", "[gitstrap] bootstrap repository").Run(); err != nil {
+		if err := exec.Command("git", "commit",
+			"-m", "[gitstrap] bootstrap repository",
+			"-m", "check gitstrap docs: https://github.com/g4s8/gitstrap").Run(); err != nil {
 			return err
 		}
 		if err := exec.Command("git", "push", "origin", "master").Run(); err != nil {
