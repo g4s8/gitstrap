@@ -1,3 +1,4 @@
+---
 language: go
 go:
   - 1.10.x
@@ -9,6 +10,7 @@ before_install:
   - go get -v "github.com/google/go-github/github"
   - go get -v "golang.org/x/oauth2"
   - go get -v "gopkg.in/yaml.v2"
+  - go get -v "github.com/g4s8/gopwd"
 script:
   - go build -o /dev/null .
   - go build -o /dev/null ./cmd/gitstrap
@@ -21,4 +23,3 @@ deploy:
     tags: true
     condition: $TRAVIS_OS_NAME = linux
     condition: $TRAVIS_GO_VERSION = 1.11.x
-
