@@ -4,11 +4,10 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      # @todo #4:15min Build date is missing.
-      #  Let's add build date in ISO timestamp format 
-      #  to environment variables from travis deploy script
-      #  to use it here as `main.buildDate` X ldflag.
-      - -s -w -X "main.buildVersion={{.Env.TRAVIS_TAG}}{{.Env.TRAVIS_BUILD_NUMBER}}" -X "main.buildCommit={{.Env.TRAVIS_COMMIT}}"
+      - -s -w
+        -X "main.buildDate={{.Date}}"
+        -X "main.buildVersion={{.Env.TRAVIS_TAG}}{{.Env.TRAVIS_BUILD_NUMBER}}"
+        -X "main.buildCommit={{.Env.TRAVIS_COMMIT}}"
 archive:
   replacements:
     darwin: Darwin
