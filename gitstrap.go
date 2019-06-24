@@ -146,27 +146,16 @@ func New(token string, action string, cfg *Config) (Gitstrap, error) {
 }
 
 func (strap *strapCreate) Run(opt Options) error {
-	// @todo #5:30min Continue refactoring.
-	//  Refactor strapCreate.Run and strapDestr.Run functions.
-	//  Split create and destroy logic to independend steps
-	//  (such as create github repo, init git repo, etc),
-	//  Implement each actions as a chain of these steps.
 	repo := &github.Repository{
 		Name:        strap.base.cfg.Gitstrap.Github.Repo.Name,
 		Description: strap.base.cfg.Gitstrap.Github.Repo.Description,
 		Private:     strap.base.cfg.Gitstrap.Github.Repo.Private,
 	}
-	// find current user
-	me, _, err := strap.base.cli.Users.Get(strap.base.ctx, "")
+	owner, err := getOwner(strap.base, opt)
 	if err != nil {
 		return strap.err("failed to get current user", err)
 	}
-	org, hasOrg := opt["org"]
-	owner := *me.Login
-	if hasOrg {
-		owner = org
-	}
-	repo, err = strap.base.createRepo(*me.Login, repo, opt)
+	repo, err = strap.base.createRepo(owner, repo, opt)
 	if err != nil {
 		return strap.err("failed to create github repo", err)
 	}
@@ -193,19 +182,11 @@ func (strap *strapCreate) Run(opt Options) error {
 
 func (strap *strapCtx) createRepo(owner string, repo *github.Repository,
 	opt Options) (*github.Repository, error) {
-	org, hasOrg := opt["org"]
-	if hasOrg {
-		owner = org
-	}
 	fmt.Printf("Looking up for repo %s/%s... ", owner, *repo.Name)
 	r, resp, _ := strap.cli.Repositories.Get(strap.ctx, owner, *repo.Name)
 	exists := resp.StatusCode == 200
 	if !exists && prompt("repository doesn't exist. Create?") {
-		o := ""
-		if hasOrg {
-			o = org
-		}
-		r, _, err := strap.cli.Repositories.Create(strap.ctx, o, repo)
+		r, _, err := strap.cli.Repositories.Create(strap.ctx, owner, repo)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create repo: %s", err)
 		}
@@ -284,14 +265,12 @@ func (strap *strapDestr) Run(opt Options) error {
 	if !prompt("you are going to remove Github repository and local git repository. Are you sure?") {
 		return nil
 	}
-	me, _, err := strap.base.cli.Users.Get(strap.base.ctx, "")
+	owner, err := getOwner(strap.base, opt)
 	if err != nil {
 		return strap.err("failed to get current user", err)
 	}
-	owner := *me.Login
-	if o, has := opt["org"]; has {
-		owner = o
-	}
+	// @todo #9:30m/DEV Extract name resolution logic
+	//  and repo lookup logic below into separate functions.
 	var name string
 	if strap.base.cfg.Gitstrap.Github.Repo.Name != nil {
 		name = *strap.base.cfg.Gitstrap.Github.Repo.Name
@@ -348,6 +327,20 @@ func (strap *strapCtx) addCollaborators(owner string, repo *github.Repository) e
 		fmt.Printf("Collaborator %s has been added\n", clb)
 	}
 	return nil
+}
+
+// getOwner returns current GitHub username,
+// or organization name (if the -org flag was given)
+func getOwner(strap *strapCtx, opt Options) (string, error) {
+	org, hasOrg := opt["org"]
+	if hasOrg {
+		return org, nil
+	}
+	me, _, err := strap.cli.Users.Get(strap.ctx, "")
+	if err != nil {
+		return "", err
+	}
+	return *me.Login, nil
 }
 
 func gitSync(repo *github.Repository) error {
