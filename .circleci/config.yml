@@ -30,6 +30,7 @@ defaults: &defaults
 jobs:
   build:
     <<: *defaults
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - run: go env
       - checkout
