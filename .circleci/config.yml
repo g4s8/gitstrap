@@ -36,11 +36,11 @@ jobs:
       - checkout
       - run: >-
           go get -v
-            "golang.org/x/lint/golint"
-            "github.com/google/go-github/github"
-            "golang.org/x/oauth2"
-            "gopkg.in/yaml.v2"
-            "github.com/stretchr/testify/assert"
+          "golang.org/x/lint/golint"
+          "github.com/google/go-github/github"
+          "golang.org/x/oauth2"
+          "gopkg.in/yaml.v2"
+          "github.com/stretchr/testify/assert"
       - run: go build -o /dev/null .
       - run: go build -o /dev/null ./cmd/gitstrap
       - run: gometalinter .
