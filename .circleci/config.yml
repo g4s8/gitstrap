@@ -24,7 +24,7 @@
 version: 2
 defaults: &defaults
   docker:
-    - image: g4s8/gorultor:latest
+    - image: g4s8/gorultor:alpine
   environment:
     CGO_ENABLED: 0
 jobs:
