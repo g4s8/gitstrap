@@ -30,7 +30,7 @@ defaults: &defaults
 jobs:
   build:
     <<: *defaults
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/g4s8/gitstrap
     steps:
       - run: go env
       - checkout
