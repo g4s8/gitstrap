@@ -15,6 +15,7 @@ merge:
     - "go build -o /dev/null ./cmd/gitstrap"
     - "gometalinter ."
     - "gometalinter ./cmd/gitstrap"
+    - "pdd --source=$(pwd) --verbose --file=/dev/null"
   fast-forward: "no"
 release:
   script: |-

@@ -21,27 +21,27 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 ---
-language: go
-go:
-  - 1.10.x
-  - 1.11.x
-before_install:
-  - curl -L https://git.io/vp6lP | sh
-  - mv bin /tmp/bin
-  - go get -v "golang.org/x/lint/golint"
-  - go get -v "github.com/google/go-github/github"
-  - go get -v "golang.org/x/oauth2"
-  - go get -v "gopkg.in/yaml.v2"
-  - go get -v "github.com/g4s8/gopwd"
-script:
-  - go build -o /dev/null .
-  - go build -o /dev/null ./cmd/gitstrap
-  - env PATH=/tmp/bin:$PATH gometalinter .
-deploy:
-- provider: script
-  skip_cleanup: true
-  script: curl -sL https://git.io/goreleaser | bash
-  on:
-    tags: true
-    condition: $TRAVIS_OS_NAME = linux
-    condition: $TRAVIS_GO_VERSION = 1.11.x
+version: 2
+defaults: &defaults
+  docker:
+    - image: g4s8/gorultor:latest
+  environment:
+    CGO_ENABLED: 0
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - run: go env
+      - checkout
+      - run: >-
+          go get -v
+            "golang.org/x/lint/golint"
+            "github.com/google/go-github/github"
+            "golang.org/x/oauth2"
+            "gopkg.in/yaml.v2"
+            "github.com/stretchr/testify/assert"
+      - run: go build -o /dev/null .
+      - run: go build -o /dev/null ./cmd/gitstrap
+      - run: gometalinter .
+      - run: gometalinter ./cmd/gitstrap
+      - run: pdd --source=$(pwd) --verbose --file=/dev/null
