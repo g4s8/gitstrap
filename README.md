@@ -5,6 +5,7 @@
 [![Managed by Zerocracy](https://www.0crat.com/badge/CF7JL4282.svg)](https://www.0crat.com/p/CF7JL4282)
 
 [![Build Status](https://img.shields.io/travis/g4s8/gitstrap.svg?style=flat-square)](https://travis-ci.org/g4s8/gitstrap)
+[![CircleCI](https://circleci.com/gh/g4s8/gitstrap.svg?style=svg)](https://circleci.com/gh/g4s8/gitstrap)
 
 [![PDD status](http://www.0pdd.com/svg?name=g4s8/gitstrap)](http://www.0pdd.com/p?name=g4s8/gitstrap)
 [![License](https://img.shields.io/github/license/g4s8/gitstrap.svg?style=flat-square)](https://github.com/g4s8/gitstrap/blob/master/LICENSE)
