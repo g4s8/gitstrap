@@ -6,6 +6,7 @@
 
 [![Build Status](https://img.shields.io/travis/g4s8/gitstrap.svg?style=flat-square)](https://travis-ci.org/g4s8/gitstrap)
 [![CircleCI](https://circleci.com/gh/g4s8/gitstrap.svg?style=svg)](https://circleci.com/gh/g4s8/gitstrap)
+[![Hits-of-Code](https://hitsofcode.com/github/g4s8/gitstrap)](https://hitsofcode.com/view/github/g4s8/gitstrap)
 
 [![PDD status](http://www.0pdd.com/svg?name=g4s8/gitstrap)](http://www.0pdd.com/p?name=g4s8/gitstrap)
 [![License](https://img.shields.io/github/license/g4s8/gitstrap.svg?style=flat-square)](https://github.com/g4s8/gitstrap/blob/master/LICENSE)
