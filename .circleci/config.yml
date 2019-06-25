@@ -36,6 +36,7 @@ jobs:
       - checkout
       - run: >-
           go get -v
+          "github.com/g4s8/gopwd"
           "golang.org/x/lint/golint"
           "github.com/google/go-github/github"
           "golang.org/x/oauth2"
