@@ -34,14 +34,7 @@ jobs:
     steps:
       - run: go env
       - checkout
-      - run: >-
-          go get -v
-          "github.com/g4s8/gopwd"
-          "golang.org/x/lint/golint"
-          "github.com/google/go-github/github"
-          "golang.org/x/oauth2"
-          "gopkg.in/yaml.v2"
-          "github.com/stretchr/testify/assert"
+      - run: go get -v -t ./...
       - run: go build -o /dev/null .
       - run: go build -o /dev/null ./cmd/gitstrap
       - run: gometalinter .

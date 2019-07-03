@@ -1,5 +1,5 @@
 docker:
-  image: "g4s8/gorultor:latest"
+  image: "g4s8/gorultor:alpine"
 env:
   PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   CGO_ENABLED: 0
@@ -7,10 +7,7 @@ merge:
   script:
     - "mkdir -pv /home/r/go/src/github.com/g4s8"
     - "ln -snv $PWD /home/r/go/src/github.com/g4s8/gitstrap"
-    - "go get github.com/google/go-github/github"
-    - "go get golang.org/x/oauth2"
-    - "go get gopkg.in/yaml.v2"
-    - "go get github.com/g4s8/gopwd"
+    - "go get -t ./..."
     - "go build -o /dev/null ."
     - "go build -o /dev/null ./cmd/gitstrap"
     - "gometalinter ."
