@@ -23,7 +23,6 @@
 ---
 language: go
 go:
-  - 1.10.x
   - 1.11.x
 before_install:
   - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.17.1
@@ -34,7 +33,6 @@ script:
   - go build -o /dev/null ./cmd/gitstrap
   - go test .
   - ./bin/golangci-lint run
-  - env PATH=/tmp/bin:$PATH gometalinter .
 deploy:
 - provider: script
   skip_cleanup: true
