@@ -37,6 +37,7 @@ jobs:
       - run: go get -v -t ./...
       - run: go build -o /dev/null .
       - run: go build -o /dev/null ./cmd/gitstrap
+      - run: go test .
       - run: gometalinter .
       - run: gometalinter ./cmd/gitstrap
       - run: pdd --source=$(pwd) --verbose --file=/dev/null

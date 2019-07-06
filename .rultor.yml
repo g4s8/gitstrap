@@ -1,3 +1,4 @@
+---
 docker:
   image: "g4s8/gorultor:alpine"
 env:
@@ -8,9 +9,11 @@ merge:
     - "mkdir -pv /home/r/go/src/github.com/g4s8"
     - "ln -snv $PWD /home/r/go/src/github.com/g4s8/gitstrap"
     - "cd /home/r/go/src/github.com/g4s8/gitstrap"
+    - "go env"
     - "go get -t ./..."
     - "go build -o /dev/null ."
     - "go build -o /dev/null ./cmd/gitstrap"
+    - "go test ."
     - "gometalinter ."
     - "gometalinter ./cmd/gitstrap"
     - "pdd --source=$(pwd) --verbose --file=/dev/null"
@@ -20,4 +23,3 @@ release:
     [[ "${tag}" =~ ^[0-9]+(\.[0-9]+)*$ ]] || exit -1
 architect:
   - "g4s8"
-

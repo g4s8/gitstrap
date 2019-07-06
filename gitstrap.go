@@ -58,7 +58,7 @@ func (y *Config) ParseReader(r io.Reader) error {
 	if y.Gitstrap.Version != V1 {
 		return fmt.Errorf("Unsupported version: %s", y.Gitstrap.Version)
 	}
-	y.RenderEnvVars()
+	y.Expand()
 	return nil
 }
 
@@ -75,20 +75,11 @@ func (y *Config) ParseFile(name string) error {
 	return err
 }
 
-// RenderEnvVars - replace environment variable references in config with their values
-func (y *Config) RenderEnvVars() {
-	for i, template := range y.Gitstrap.Templates {
-		y.Gitstrap.Templates[i].Location = renderEnvVars(template.Location)
+// Expand - expand all strings with environment variable references
+func (y *Config) Expand() {
+	for i, tpl := range y.Gitstrap.Templates {
+		y.Gitstrap.Templates[i].Location = os.ExpandEnv(tpl.Location)
 	}
-}
-
-func renderEnvVars(str string) string {
-	for _, e := range os.Environ() {
-		parts := strings.SplitN(e, "=", 2)
-		name, value := parts[0], parts[1]
-		str = strings.Replace(str, "$"+name, value, -1)
-	}
-	return str
 }
 
 // Options - gitstrap options
