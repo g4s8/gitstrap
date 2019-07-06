@@ -26,13 +26,14 @@ go:
   - 1.10.x
   - 1.11.x
 before_install:
-  - curl -L https://git.io/vp6lP | sh
-  - mv bin /tmp/bin
+  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.17.1
+  - ./bin/golangci-lint --version
   - go get -v -t ./...
 script:
   - go build -o /dev/null .
   - go build -o /dev/null ./cmd/gitstrap
   - go test .
+  - ./bin/golangci-lint run
   - env PATH=/tmp/bin:$PATH gometalinter .
 deploy:
 - provider: script

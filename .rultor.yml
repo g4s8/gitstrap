@@ -14,8 +14,7 @@ merge:
     - "go build -o /dev/null ."
     - "go build -o /dev/null ./cmd/gitstrap"
     - "go test ."
-    - "gometalinter ."
-    - "gometalinter ./cmd/gitstrap"
+    - "golangci-lint run"
     - "pdd --source=$(pwd) --verbose --file=/dev/null"
   fast-forward: "no"
 release:
