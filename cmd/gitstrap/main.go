@@ -19,7 +19,7 @@ func main() {
 	var ver bool
 	flag.StringVar(&token, "token", "", "Github API token")
 	flag.StringVar(&config, "config", ".gitstrap.yaml", "Gitstrap config (default .gitstrap)")
-	flag.StringVar(&org, "org", "", "Github organization (optinal)")
+	flag.StringVar(&org, "org", "", "Github organization (optional)")
 	flag.BoolVar(&ver, "version", false, "Show version")
 	flag.Parse()
 	if ver {
@@ -34,7 +34,7 @@ func main() {
 
 	if _, found := os.LookupEnv("SSH_AGENT_PID"); !found {
 		fmt.Println("ssh-agent is not running. " +
-			"You should start it before gitstrap and add correct ssh key to be able access Github repo via git")
+			"You should start it before running gitstrap and add correct ssh key to be able to access Github repo via git")
 		os.Exit(1)
 	}
 	cfg := &gitstrap.Config{}
