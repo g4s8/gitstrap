@@ -52,11 +52,14 @@ type Config struct {
 
 // ParseReader - parse config from reader
 func (y *Config) ParseReader(r io.Reader) error {
-	err := yaml.NewDecoder(r).Decode(y)
+	if err := yaml.NewDecoder(r).Decode(y); err != nil {
+		return err
+	}
 	if y.Gitstrap.Version != V1 {
 		return fmt.Errorf("Unsupported version: %s", y.Gitstrap.Version)
 	}
-	return err
+	y.RenderEnvVars()
+	return nil
 }
 
 // ParseFile - parse config from file
@@ -70,6 +73,22 @@ func (y *Config) ParseFile(name string) error {
 	}
 	err = f.Close()
 	return err
+}
+
+// RenderEnvVars - replace environment variable references in config with their values
+func (y *Config) RenderEnvVars() {
+	for i, template := range y.Gitstrap.Templates {
+		y.Gitstrap.Templates[i].Location = renderEnvVars(template.Location)
+	}
+}
+
+func renderEnvVars(str string) string {
+	for _, e := range os.Environ() {
+		parts := strings.SplitN(e, "=", 2)
+		name, value := parts[0], parts[1]
+		str = strings.Replace(str, "$"+name, value, -1)
+	}
+	return str
 }
 
 // Options - gitstrap options
