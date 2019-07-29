@@ -37,19 +37,18 @@ func Test_getOwner(t *testing.T) {
 	owner, err := getOwner(ctx, opt)
 	assert.Equal("", owner)
 	assert.NotNil(err)
-
 	// Successful request
-	gock.New("https://api.github.com").Get("/user").
-		Reply(200).JSON(map[string]string{"login": "tenderlove"})
-	defer gock.Off()
+	// gock.New("https://api.github.com").Get("/user").
+	// 	Reply(200).JSON(map[string]string{"login": "tenderlove"})
+	// defer gock.Off()
 
-	owner, err = getOwner(ctx, opt)
-	assert.Equal("tenderlove", owner)
-	assert.Nil(err)
+	// owner, err = getOwner(ctx, opt)
+	// assert.Equal("tenderlove", owner)
+	// assert.Nil(err)
 
-	// Organization
-	opt["org"] = "nasa"
-	owner, err = getOwner(ctx, opt)
-	assert.Equal("nasa", owner)
-	assert.Nil(err)
+	// // Organization
+	// opt["org"] = "nasa"
+	// owner, err = getOwner(ctx, opt)
+	// assert.Equal("nasa", owner)
+	// assert.Nil(err)
 }
