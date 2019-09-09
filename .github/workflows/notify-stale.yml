@@ -1,0 +1,17 @@
+name: "Label stale tickets"
+on:
+  schedule:
+  - cron: "0 0 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/stale@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        stale-issue-message: '@g4s8 ping (issue is stale)'
+        stale-pr-message: '@g4s8 ping (PR is stale)'
+        days-before-stale: 10
+        stale-issue-label: 'stale'
+        stale-pr-label: 'stale'
