@@ -23,7 +23,7 @@ jobs:
       run: go build -v .
     - name: Test
       run: go test -v .
-    - name: Lint
-      uses: actions-contrib/golangci-lint@master
-      with:
-        args: "run"
+#    - name: Lint
+#      uses: actions-contrib/golangci-lint@master
+#      with:
+#        args: "run"
