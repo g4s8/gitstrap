@@ -2,7 +2,9 @@ package gitstrap
 
 import (
 	"bufio"
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/g4s8/gopwd"
 	"github.com/google/go-github/github"
@@ -10,6 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -75,6 +78,19 @@ func (y *Config) ParseFile(name string) error {
 	return err
 }
 
+func (y *Config) Validate() error {
+	if y.Gitstrap == nil {
+		return errors.New("No `gitstrap` node")
+	}
+	if y.Gitstrap.Github == nil {
+		return errors.New("No `gitstrap.github` node")
+	}
+	if y.Gitstrap.Github.Repo == nil {
+		return errors.New("No `gitstrap.github.repo` node")
+	}
+	return nil
+}
+
 // Expand - expand all strings with environment variable references
 func (y *Config) Expand() {
 	for i, tpl := range y.Gitstrap.Templates {
@@ -91,13 +107,22 @@ type Gitstrap interface {
 }
 
 type strapCtx struct {
-	cfg *Config
-	ctx context.Context
-	cli *github.Client
+	cfg   *Config
+	ctx   context.Context
+	cli   *github.Client
+	debug bool
+}
+
+func (ctx *strapCtx) String() string {
+	return fmt.Sprintf("debug=%t, cfg=%+v", ctx.debug, ctx.cfg)
 }
 
 type strapCreate struct {
 	base *strapCtx
+}
+
+func (s *strapCreate) String() string {
+	return fmt.Sprintf("create={ctx={%s}}", s.base)
 }
 
 type strapErr struct {
@@ -114,7 +139,7 @@ func (err *strapErr) Error() string {
 	return fmt.Sprintf("[%s] %s: %s", err.strap, err.msg, err.cause)
 }
 
-func (strap *strapCreate) err(msg string, cause error) error {
+func (s *strapCreate) err(msg string, cause error) error {
 	return &strapErr{"create", msg, cause}
 }
 
@@ -122,18 +147,63 @@ func (strap *strapDestr) err(msg string, cause error) error {
 	return &strapErr{"destroy", msg, cause}
 }
 
+type logTransport struct {
+	origin http.RoundTripper
+	tag    string
+}
+
+func (t *logTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	log.Printf("[%s] >>> %s %s", t.tag, req.Method, req.URL)
+	if req.Body != nil {
+		defer req.Body.Close()
+		if data, err := ioutil.ReadAll(req.Body); err == nil {
+			req.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+			log.Print(string(data))
+		}
+	}
+	rsp, err := t.origin.RoundTrip(req)
+	if err != nil {
+		log.Printf("[%s] %s ERR: %s", t.tag, req.URL, err)
+	} else {
+		log.Printf("[%s] %s <<< %d", t.tag, req.URL, rsp.StatusCode)
+		if rsp.Body != nil {
+			defer rsp.Body.Close()
+			if data, err := ioutil.ReadAll(rsp.Body); err == nil {
+				rsp.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+				log.Print(string(data))
+			}
+		}
+	}
+	return rsp, err
+}
+
 // New - make a gitstrap
-func New(token string, action string, cfg *Config) (Gitstrap, error) {
+func New(token string, action string, cfg *Config,
+	debug bool) (Gitstrap, error) {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
+	if debug {
+		log.Printf("token: ***%s", token[:3])
+	}
 	tc := oauth2.NewClient(ctx, ts)
+	if debug {
+		tr := new(logTransport)
+		tr.tag = "GH"
+		if tc.Transport != nil {
+			tr.origin = tc.Transport
+		} else {
+			tr.origin = http.DefaultTransport
+		}
+		tc.Transport = tr
+	}
 	cli := github.NewClient(tc)
 	strap := &strapCtx{
-		ctx: ctx,
-		cli: cli,
-		cfg: cfg,
+		ctx:   ctx,
+		cli:   cli,
+		cfg:   cfg,
+		debug: debug,
 	}
 	switch action {
 	case "create":
@@ -146,12 +216,19 @@ func New(token string, action string, cfg *Config) (Gitstrap, error) {
 }
 
 func (strap *strapCreate) Run(opt Options) error {
+	name, err := strap.base.repoName()
+	if err != nil {
+		return err
+	}
 	repo := &github.Repository{
-		Name:        strap.base.cfg.Gitstrap.Github.Repo.Name,
+		Name:        &name,
 		Description: strap.base.cfg.Gitstrap.Github.Repo.Description,
 		Private:     strap.base.cfg.Gitstrap.Github.Repo.Private,
 	}
 	owner, err := getOwner(strap.base, opt)
+	if strap.base.debug {
+		fmt.Printf("RUN: as %s options = %s\n", owner, opt)
+	}
 	if err != nil {
 		return strap.err("failed to get current user", err)
 	}
@@ -175,18 +252,26 @@ func (strap *strapCreate) Run(opt Options) error {
 		return strap.err("failed to add collaborators", err)
 	}
 
-	fmt.Println("Create: done")
+	fmt.Printf("Created: https://github.com/%s/%s\n", owner, *repo.Name)
 
 	return nil
 }
 
-func (strap *strapCtx) createRepo(owner string, repo *github.Repository,
+func (s *strapCtx) createRepo(owner string, repo *github.Repository,
 	opt Options) (*github.Repository, error) {
-	fmt.Printf("Looking up for repo %s/%s... ", owner, *repo.Name)
-	r, resp, _ := strap.cli.Repositories.Get(strap.ctx, owner, *repo.Name)
+	fmt.Printf("Looking up for repo %s/%s\n", owner, *repo.Name)
+	r, resp, _ := s.cli.Repositories.Get(s.ctx, owner, *repo.Name)
 	exists := resp.StatusCode == 200
-	if !exists && prompt("repository doesn't exist. Create?") {
-		r, _, err := strap.cli.Repositories.Create(strap.ctx, owner, repo)
+	_, accept := opt["accept"]
+	if !exists && (accept || prompt("repository doesn't exist. Create?")) {
+		if s.debug {
+			fmt.Printf("creating repo: %s/%s\n\t%+v\n", owner, *repo.Name, repo)
+		}
+		org := ""
+		if _, hasOrg := opt["org"]; hasOrg {
+			org = owner
+		}
+		r, _, err := s.cli.Repositories.Create(s.ctx, org, repo)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create repo: %s", err)
 		}
@@ -261,24 +346,31 @@ func downloadTemplate(url string) ([]byte, error) {
 	return data, nil
 }
 
+func (s *strapCtx) repoName() (string, error) {
+	var name string
+	if s.cfg.Gitstrap.Github.Repo.Name != nil {
+		name = *s.cfg.Gitstrap.Github.Repo.Name
+	} else {
+		name, err := gopwd.Name()
+		if err != nil {
+			return name, errors.New("Failed to get PWD")
+		}
+	}
+	return name, nil
+}
+
 func (strap *strapDestr) Run(opt Options) error {
-	if !prompt("you are going to remove Github repository and local git repository. Are you sure?") {
+	_, accept := opt["accept"]
+	if !accept && !prompt("you are going to remove Github repository and local git repository. Are you sure?") {
 		return nil
 	}
 	owner, err := getOwner(strap.base, opt)
 	if err != nil {
 		return strap.err("failed to get current user", err)
 	}
-	// @todo #9:30m/DEV Extract name resolution logic
-	//  and repo lookup logic below into separate functions.
-	var name string
-	if strap.base.cfg.Gitstrap.Github.Repo.Name != nil {
-		name = *strap.base.cfg.Gitstrap.Github.Repo.Name
-	} else {
-		name, err = gopwd.Name()
-		if err != nil {
-			return strap.err("Failed to get PWD", err)
-		}
+	name, err := strap.base.repoName()
+	if err != nil {
+		return err
 	}
 	fmt.Printf("Looking up for repo %s/%s... ", owner, name)
 	_, resp, _ := strap.base.cli.Repositories.Get(strap.base.ctx, owner, name)
@@ -364,7 +456,7 @@ func gitPush(repo *github.Repository) error {
 		}
 		if err := exec.Command("git", "commit",
 			"-m", "[gitstrap] bootstrap repository",
-			"-m", "check gitstrap docs: https://github.com/g4s8/gitstrap").Run(); err != nil {
+			"-m", "by https://github.com/g4s8/gitstrap").Run(); err != nil {
 			return err
 		}
 		if err := exec.Command("git", "push", "origin", "master").Run(); err != nil {
