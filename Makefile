@@ -7,11 +7,10 @@ all: clean build test lint
 
 build: $(OUTPUT)
 
-
 $(OUTPUT):
 	go build \
 		-ldflags "-X main.buildVersion=$(BUILD_VERSION) -X main.buildCommit=$(BUILD_HASH) -X main.buildDate=$(BUILD_DATE)" \
-		-o $(OUTPUT)
+		-o $(OUTPUT) ./cmd/gitstrap
 
 clean:
 	rm -f $(OUTPUT)
