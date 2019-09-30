@@ -17,12 +17,14 @@ var (
 
 func main() {
 	var config, token, org string
-	var ver bool
+	var ver, debug, accept bool
 	var err error
 	flag.StringVar(&token, "token", "", "Github API token")
 	flag.StringVar(&config, "config", ".gitstrap.yaml", "Gitstrap config (default .gitstrap)")
 	flag.StringVar(&org, "org", "", "Github organization (optional)")
 	flag.BoolVar(&ver, "version", false, "Show version")
+	flag.BoolVar(&debug, "debug", false, "Show debug logs")
+	flag.BoolVar(&accept, "accept", false, "Accept operation, don't prompt")
 	flag.Parse()
 	if ver {
 		fmt.Printf("gitstrap version: %s\n"+
@@ -42,14 +44,23 @@ func main() {
 	if err := cfg.ParseFile(config); err != nil {
 		fatal(err)
 	}
+	if err := cfg.Validate(); err != nil {
+		fatal(err)
+	}
 	action := flag.Arg(0)
-	g, err := gitstrap.New(token, action, cfg)
+	g, err := gitstrap.New(token, action, cfg, debug)
 	if err != nil {
 		fatal(err)
 	}
 	options := gitstrap.Options(make(map[string]string))
 	if org != "" {
 		options["org"] = org
+	}
+	if accept {
+		options["accept"] = "yes"
+	}
+	if debug {
+		fmt.Printf("strap = %s\n", g)
 	}
 	if err = g.Run(options); err != nil {
 		fatal(err)
