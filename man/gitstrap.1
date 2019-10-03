@@ -1,0 +1,47 @@
+.TH "gitstrap" "1" "version: 0.2.6" "30 Sep 2019" "gitstrap manual"
+
+.SH NAME
+.PP
+gitstrap - command line tool to bootstrap GitHub repository
+
+.SH SYNOPSIS
+.PP
+gitstrap [flags] (create|destroy)
+
+.SH DESCRIPTION
+.PP
+This tool automates routine operations when creating new GitHub repository.
+.PP
+It can create and configure GitHub repository from yaml configuration file.
+Gitstrap helps to:
+ 1) create new repository on GitHub
+ 2) sync with local directory
+ 3) apply templates, such as README with badges, CI configs, LICENSE stuff, etc
+ 4) configure webhooks for Github repo
+ 5) invite collaborators
+
+.SH OPTIONS
+.PP
+\fB-accept\fP
+    dont ask when creating or deleting repository,
+    say \fByes\fP to all prompts.
+
+.PP
+\fB-config=".gitstrap.yaml"\fP
+    gitstrap config file location (default \fB"$PWD/.gitstrap.yaml"\fP)
+
+.PP
+\fB-debug\fP
+    Show debug logs
+
+.PP
+\fB-org=""\fP
+    GitHub organization name (optional)
+
+.PP
+\fB-token=""\fP
+    GitHub API token
+
+.PP
+\fB-version\fP
+    Show version
