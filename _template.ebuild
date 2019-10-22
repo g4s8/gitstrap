@@ -24,6 +24,7 @@ LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="test"
+GO111MODULE=auto
 
 src_compile() {
 	local now=$(date -u +%Y.%m.%dT%H:%M:%S)
