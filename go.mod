@@ -1,4 +1,4 @@
-module github.com/mohamednizar/gitstrap
+module github.com/g4s8/gitstrap
 
 require (
 	github.com/g4s8/gitstrap v0.0.0-20191003172754-76ad177c10f3
