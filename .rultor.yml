@@ -5,10 +5,10 @@ env:
   PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   CGO_ENABLED: 0
 install:
-  script: |-
+  script: |
     echo install
 merge:
-  script: |-
+  script: |
     export CGO_ENABLED=0
     export PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     mkdir -pv /home/r/go/src/github.com/g4s8
