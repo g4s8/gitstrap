@@ -6,7 +6,6 @@ env:
   CGO_ENABLED: 0
 merge:
   script:
-    - "cat /home/r/script.sh"
     - "mkdir -pv /home/r/go/src/github.com/g4s8"
     - "ln -snv $PWD /home/r/go/src/github.com/g4s8/gitstrap"
     - "cd /home/r/go/src/github.com/g4s8/gitstrap"
