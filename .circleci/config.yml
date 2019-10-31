@@ -40,3 +40,4 @@ jobs:
       - run: go test .
       - run: golangci-lint run
       - run: pdd --source=$(pwd) --verbose --file=/dev/null
+      - run: gitlint
