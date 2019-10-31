@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/go-github/github"
-	"github.com/mohamednizar/gopwd"
+	"github.com/g4s8/gopwd"
 	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 	"io"
