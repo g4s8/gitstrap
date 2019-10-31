@@ -1,6 +1,6 @@
 ---
 docker:
-  image: "g4s8/gorultor:alpine"
+  image: "g4s8/gorultor:alpine3.10"
 env:
   PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   CGO_ENABLED: 0
