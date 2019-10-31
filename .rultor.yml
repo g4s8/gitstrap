@@ -16,6 +16,7 @@ merge:
     - "go test ."
     - "golangci-lint run"
     - "pdd --source=$(pwd) --verbose --file=/dev/null"
+    - "gitlint"
   fast-forward: "no"
 release:
   script: |-
