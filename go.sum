@@ -5,6 +5,8 @@ github.com/g4s8/gitstrap v0.0.0-20191003172754-76ad177c10f3 h1:UNORUEJbxGf7+mpif
 github.com/g4s8/gitstrap v0.0.0-20191003172754-76ad177c10f3/go.mod h1:wsyGZNfOzb7l2NRSkuJO4RjTVeMcF34OCfGBunQSt0M=
 github.com/g4s8/gopwd v0.0.0-20190515145349-0ddc5d340ba5 h1:Q7lDivyqwehW9ydXSWudnbS7B0Brz0TfU8dym5XFYes=
 github.com/g4s8/gopwd v0.0.0-20190515145349-0ddc5d340ba5/go.mod h1:+H3FNV+Aqbo+2KxMsDtrcqSfZszU7YPUM4KeYaf2rVs=
+github.com/g4s8/gopwd v0.0.0-20191109142035-f7311044bc0a h1:VMG7KC91uEqu/ism144UxOLUWu0dLpCAk9ud986J1zk=
+github.com/g4s8/gopwd v0.0.0-20191109142035-f7311044bc0a/go.mod h1:+H3FNV+Aqbo+2KxMsDtrcqSfZszU7YPUM4KeYaf2rVs=
 github.com/golang/protobuf v1.2.0 h1:P3YflyNX/ehuJFLhxviNdFxQPkGK5cDcApsge1SqnvM=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/google/go-github v17.0.0+incompatible h1:N0LgJ1j65A7kfXrZnUDaYCs/Sf4rEjNlfyDHW9dolSY=

@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
-
+    "github.com/g4s8/gopwd"
 	"github.com/google/go-github/github"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
@@ -51,4 +51,13 @@ func Test_getOwner(t *testing.T) {
 	// owner, err = getOwner(ctx, opt)
 	// assert.Equal("nasa", owner)
 	// assert.Nil(err)
+}
+
+// This test will confirm that gitstrap can get the use the Work Directory name if the reponame not given in the config
+func Test_getRepoNameIfNotInConfig(t *testing.T){
+    name , err := gopwd.Name();
+
+    if "gitstrap" != name {
+        t.Errorf("Failed to get repo name , expacted : gitstrap got:  %s , %s",  name, err)
+    }
 }

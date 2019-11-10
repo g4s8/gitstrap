@@ -6,8 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/g4s8/gopwd"
 	"github.com/google/go-github/github"
+	"github.com/g4s8/gopwd"
 	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -24,6 +24,7 @@ const (
 	// V1 - first version of config
 	V1 = "v1"
 )
+
 
 // Config - gitstrap config
 type Config struct {
