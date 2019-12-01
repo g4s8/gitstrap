@@ -2,12 +2,12 @@ package gitstrap
 
 import (
 	"context"
-	"os"
-	"testing"
-    "github.com/g4s8/gopwd"
+	"github.com/g4s8/gopwd"
 	"github.com/google/go-github/github"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
+	"os"
+	"testing"
 )
 
 func TestExpandTemplates(t *testing.T) {
@@ -19,7 +19,7 @@ func TestExpandTemplates(t *testing.T) {
 	assert := assert.New(t)
 	os.Setenv("FOO", "one")
 	os.Setenv("BAR", "two")
-	cfg.Expand()
+	cfg.expand()
 	assert.Equal("one/two/baz", cfg.Gitstrap.Templates[0].Location)
 }
 
@@ -54,10 +54,10 @@ func Test_getOwner(t *testing.T) {
 }
 
 // This test will confirm that gitstrap can get the use the Work Directory name if the reponame not given in the config
-func Test_getRepoNameIfNotInConfig(t *testing.T){
-    name , err := gopwd.Name();
+func Test_getRepoNameIfNotInConfig(t *testing.T) {
+	name, err := gopwd.Name()
 
-    if "gitstrap" != name {
-        t.Errorf("Failed to get repo name , expacted : gitstrap got:  %s , %s",  name, err)
-    }
+	if "gitstrap" != name {
+		t.Errorf("Failed to get repo name , expacted : gitstrap got:  %s , %s", name, err)
+	}
 }

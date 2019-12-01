@@ -6,11 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/go-github/github"
 	"github.com/g4s8/gopwd"
+	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
-	"gopkg.in/yaml.v2"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,85 +17,6 @@ import (
 	"strings"
 	"text/template"
 )
-
-const (
-	// V1 - first version of config
-	V1 = "v1"
-)
-
-
-// Config - gitstrap config
-type Config struct {
-	Gitstrap *struct {
-		Version string `yaml:"version"`
-		Github  *struct {
-			Repo *struct {
-				Name        *string `yaml:"name"`
-				Description *string `yaml:"description"`
-				Private     *bool   `yaml:"private"`
-				AutoInit    *bool   `yaml:"autoInit"`
-				Hooks       []struct {
-					URL    string   `yaml:"url"`
-					Type   string   `yaml:"type"`
-					Events []string `yaml:"events"`
-					Active *bool    `yaml:"active"`
-				} `yaml:"hooks"`
-				Collaborators []string `yaml:"collaborators"`
-			} `yaml:"repo"`
-		} `yaml:"github"`
-		Templates []struct {
-			Name     string `yaml:"name"`
-			Location string `yaml:"location"`
-			URL      string `yaml:"url"`
-		} `yaml:"templates"`
-		Params map[string]string `yaml:"params"`
-	} `yaml:"gitstrap"`
-}
-
-// ParseReader - parse config from reader
-func (y *Config) ParseReader(r io.Reader) error {
-	if err := yaml.NewDecoder(r).Decode(y); err != nil {
-		return err
-	}
-	if y.Gitstrap.Version != V1 {
-		return fmt.Errorf("Unsupported version: %s", y.Gitstrap.Version)
-	}
-	y.Expand()
-	return nil
-}
-
-// ParseFile - parse config from file
-func (y *Config) ParseFile(name string) error {
-	f, err := os.Open(name)
-	if err != nil {
-		return fmt.Errorf("Failed to open config file: %s", err)
-	}
-	if err = y.ParseReader(bufio.NewReader(f)); err != nil {
-		return err
-	}
-	err = f.Close()
-	return err
-}
-
-func (y *Config) Validate() error {
-	if y.Gitstrap == nil {
-		return errors.New("No `gitstrap` node")
-	}
-	if y.Gitstrap.Github == nil {
-		return errors.New("No `gitstrap.github` node")
-	}
-	if y.Gitstrap.Github.Repo == nil {
-		return errors.New("No `gitstrap.github.repo` node")
-	}
-	return nil
-}
-
-// Expand - expand all strings with environment variable references
-func (y *Config) Expand() {
-	for i, tpl := range y.Gitstrap.Templates {
-		y.Gitstrap.Templates[i].Location = os.ExpandEnv(tpl.Location)
-	}
-}
 
 // Options - gitstrap options
 type Options map[string]string
@@ -126,32 +45,18 @@ func (s *strapCreate) String() string {
 	return fmt.Sprintf("create={ctx={%s}}", s.base)
 }
 
-type strapErr struct {
-	strap string
-	msg   string
-	cause error
-}
-
 type strapDestr struct {
 	base *strapCtx
-}
-
-func (err *strapErr) Error() string {
-	return fmt.Sprintf("[%s] %s: %s", err.strap, err.msg, err.cause)
-}
-
-func (s *strapCreate) err(msg string, cause error) error {
-	return &strapErr{"create", msg, cause}
-}
-
-func (strap *strapDestr) err(msg string, cause error) error {
-	return &strapErr{"destroy", msg, cause}
 }
 
 type logTransport struct {
 	origin http.RoundTripper
 	tag    string
 }
+
+// @todo #37:30min Continue rafactoring gitstrap.go file
+//  Move away all github logic, git functions and transport
+//  structures. Then check again if refactoring is needed.
 
 func (t *logTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	log.Printf("[%s] >>> %s %s", t.tag, req.Method, req.URL)
@@ -231,26 +136,26 @@ func (strap *strapCreate) Run(opt Options) error {
 		fmt.Printf("RUN: as %s options = %s\n", owner, opt)
 	}
 	if err != nil {
-		return strap.err("failed to get current user", err)
+		return ErrCompose(err, "failed to get current user")
 	}
 	repo, err = strap.base.createRepo(owner, repo, opt)
 	if err != nil {
-		return strap.err("failed to create github repo", err)
+		return ErrCompose(err, "failed to create github repo")
 	}
 	if err := gitSync(repo); err != nil {
-		return strap.err("failed to sync git repo", err)
+		return ErrCompose(err, "failed to sync git repo")
 	}
 	if err := strap.base.applyTemplates(repo); err != nil {
-		return strap.err("failed to apply templates", err)
+		return ErrCompose(err, "failed to apply templates")
 	}
 	if err := gitPush(repo); err != nil {
-		return strap.err("failed to push to remote", err)
+		return ErrCompose(err, "failed to push to remote")
 	}
 	if err := strap.base.addHooks(owner, repo); err != nil {
-		return strap.err("failed to add web-hooks", err)
+		return ErrCompose(err, "failed to add web-hooks")
 	}
 	if err := strap.base.addCollaborators(owner, repo); err != nil {
-		return strap.err("failed to add collaborators", err)
+		return ErrCompose(err, "failed to add collaborators")
 	}
 
 	fmt.Printf("Created: https://github.com/%s/%s\n", owner, *repo.Name)
@@ -367,7 +272,7 @@ func (strap *strapDestr) Run(opt Options) error {
 	}
 	owner, err := getOwner(strap.base, opt)
 	if err != nil {
-		return strap.err("failed to get current user", err)
+		return ErrCompose(err, "failed to get current user")
 	}
 	name, err := strap.base.repoName()
 	if err != nil {
@@ -381,11 +286,11 @@ func (strap *strapDestr) Run(opt Options) error {
 		os.Exit(1)
 	}
 	if _, err = strap.base.cli.Repositories.Delete(strap.base.ctx, owner, name); err != nil {
-		return strap.err("failed to delete repository", err)
+		return ErrCompose(err, "failed to delete repository")
 	}
 	fmt.Printf("Github repository %s/%s has been deleted\n", owner, name)
 	if err = os.RemoveAll(".git"); err != nil {
-		return strap.err("Failed to remove git directory", err)
+		return ErrCompose(err, "Failed to remove git directory")
 	}
 	fmt.Println("Local git repository has been deleted")
 
