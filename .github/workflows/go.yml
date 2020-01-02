@@ -12,7 +12,6 @@ jobs:
       id: go
     - name: Check out the code
       uses: actions/checkout@v2
-    - name: Get dependencies
     - name: Build
       run: go build -v
     - name: Test
