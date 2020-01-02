@@ -21,9 +21,13 @@ jobs:
           ${{ runner.os }}-go-
     - name: Build
       run: go build -v
+    - name: Build Cmd
+      run: go build -v ./cmd/gitstrap
     - name: Test
       run: go test -v
-#     - name: Lint
-#       uses: actions-contrib/golangci-lint@master
-#       with:
-#         args: "run"
+    - name: Lint
+      uses: actions-contrib/golangci-lint@master
+      env:
+        GOROOT: ""
+      with:
+        args: "run"
