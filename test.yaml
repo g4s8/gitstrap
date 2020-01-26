@@ -1,0 +1,31 @@
+# example configuration to test gitstrap
+---
+version: v2
+github:
+  # repository name
+  name: test1234
+  # repository description
+  description: just a test repo
+  # webhooks
+  hooks:
+    - url: "https://myserver.com/hooks"
+      type: form
+      events:
+        - push
+      active: true
+  # add collaborators
+  collaborators:
+    - rultor
+extensions:
+  # generate README file and upload it
+  readme:
+    # Readme title
+    title: "Test project"
+    # List of badges
+    badges:
+      - alt: CircleCI
+        img: https://circleci.com/gh/g4s8/gitstrap.svg?style=svg
+        link: https://circleci.com/gh/g4s8/gitstrap
+  # Enable https://www.0pdd.com/
+  0pdd:
+    verbose: false

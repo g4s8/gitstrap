@@ -1,12 +1,16 @@
 package main
 
 import (
-	"flag"
+	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
-
 	"github.com/g4s8/gitstrap"
+	"github.com/g4s8/gitstrap/config"
+	"github.com/g4s8/gitstrap/context"
+	"github.com/g4s8/gopwd"
+	"github.com/urfave/cli/v2"
+	"io/ioutil"
+	"log"
+	"os"
 )
 
 var (
@@ -16,61 +20,204 @@ var (
 )
 
 func main() {
-	var config, token, org string
-	var ver, debug, accept bool
-	var err error
-	flag.StringVar(&token, "token", "", "Github API token")
-	flag.StringVar(&config, "config", ".gitstrap.yaml", "Gitstrap config (default .gitstrap)")
-	flag.StringVar(&org, "org", "", "Github organization (optional)")
-	flag.BoolVar(&ver, "version", false, "Show version")
-	flag.BoolVar(&debug, "debug", false, "Show debug logs")
-	flag.BoolVar(&accept, "accept", false, "Accept operation, don't prompt")
-	flag.Parse()
-	if ver {
-		fmt.Printf("gitstrap version: %s\n"+
-			"commit hash: %s\n"+
-			"build date: %s\n", buildVersion, buildCommit, buildDate)
-		os.Exit(0)
+	log.SetPrefix("")
+	log.SetFlags(0)
+	app := cli.App{
+		Name:        "gitstrap",
+		Description: "CLI tool to manage GitHub repositories",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "token",
+				Usage: "GitHub API token with repo access",
+			},
+		},
+		Commands: []*cli.Command{
+			&cli.Command{
+				Name:    "get",
+				Aliases: []string{"g"},
+				Usage:   "get repository configuration",
+				Action:  cmdGet,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "output",
+						Aliases: []string{"o"},
+						Value:   "names",
+						Usage:   "output format: names|yaml",
+					},
+					&cli.StringFlag{
+						Name:  "org",
+						Usage: "GitHub organization owner instead of user",
+					},
+				},
+			},
+			&cli.Command{
+				Name:   "apply",
+				Usage:  "apply gitstrap configuration",
+				Action: cmdApply,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "file",
+						Aliases:  []string{"f"},
+						Usage:    "gitstrap yaml config to apply",
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:  "org",
+						Usage: "GitHub organization owner instead of user",
+					},
+				},
+			},
+			&cli.Command{
+				Name:   "delete",
+				Usage:  "delete gitstrap repository",
+				Action: cmdDelete,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "file",
+						Aliases:  []string{"f"},
+						Usage:    "gitstrap yaml config",
+						Required: true,
+					},
+					&cli.BoolFlag{
+						Name:     "accept",
+						Usage:    "accept delete",
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:  "org",
+						Usage: "GitHub organization owner instead of user",
+					},
+				},
+			},
+			&cli.Command{
+				Name:        "upgrade",
+				Description: "upgrade config to latest version",
+				Action:      cmdUpgrade,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "file",
+						Aliases:  []string{"f"},
+						Usage:    "gitstrap yaml config",
+						Required: true,
+					},
+				},
+			},
+		},
 	}
-	if token, err = getToken(token, os.Getenv("HOME")+"/.config/gitstrap/github_token.txt"); err != nil {
-		fatal(err)
-	}
-	if _, found := os.LookupEnv("SSH_AGENT_PID"); !found {
-		fmt.Println("ssh-agent is not running. " +
-			"You should start it before running gitstrap and add correct ssh key to be able to access Github repo via git")
-		os.Exit(1)
-	}
-	cfg := &gitstrap.Config{}
-	if err := cfg.ParseFile(config); err != nil {
-		fatal(err)
-	}
-	if err := cfg.Validate(); err != nil {
-		fatal(err)
-	}
-	action := flag.Arg(0)
-	g, err := gitstrap.New(token, action, cfg, debug)
-	if err != nil {
-		fatal(err)
-	}
-	options := gitstrap.Options(make(map[string]string))
-	if org != "" {
-		options["org"] = org
-	}
-	if accept {
-		options["accept"] = "yes"
-	}
-	if debug {
-		fmt.Printf("strap = %s\n", g)
-	}
-	if err = g.Run(options); err != nil {
-		fatal(err)
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
 	}
 }
 
-func getToken(token, file string) (string, error) {
+func cmdUpgrade(c *cli.Context) error {
+	f := c.String("file")
+	cfg := new(config.Config)
+	if err := cfg.ParseFile(f); err != nil {
+		return err
+	}
+	y, err := cfg.ToYaml()
+	if err != nil {
+		return err
+	}
+	fmt.Println(y)
+	return nil
+}
+
+func cmdDelete(c *cli.Context) error {
+	token := c.String("token")
+	var err error
+	if token, err = getToken(token); err != nil {
+		return err
+	}
+	f := c.String("file")
+	cfg := new(config.Config)
+	if err := cfg.ParseFile(f); err != nil {
+		return err
+	}
+	pwd, err := gopwd.Abs()
+	if err != nil {
+		return err
+	}
+	ctx := context.New(token, pwd, false)
+	org := c.String("org")
+	if org != "" {
+		ctx.Opt["org"] = org
+	}
+	if err := gitstrap.Delete(ctx, cfg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func cmdApply(c *cli.Context) error {
+	token := c.String("token")
+	var err error
+	if token, err = getToken(token); err != nil {
+		return err
+	}
+	f := c.String("file")
+	cfg := new(config.Config)
+	if err := cfg.ParseFile(f); err != nil {
+		return err
+	}
+	pwd, err := gopwd.Abs()
+	if err != nil {
+		return err
+	}
+	ctx := context.New(token, pwd, false)
+	org := c.String("org")
+	if org != "" {
+		ctx.Opt["org"] = org
+	}
+	if err := gitstrap.Apply(ctx, cfg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func cmdGet(c *cli.Context) error {
+	token := c.String("token")
+	var err error
+	if token, err = getToken(token); err != nil {
+		return err
+	}
+	name := c.Args().Get(0)
+	if name == "" {
+		return errors.New("name argument required")
+	}
+	pwd, err := gopwd.Abs()
+	if err != nil {
+		return err
+	}
+	ctx := context.New(token, pwd, false)
+	org := c.String("org")
+	if org != "" {
+		ctx.Opt["org"] = org
+	}
+	cfg := new(config.Config)
+	if err := gitstrap.Get(ctx, cfg, name); err != nil {
+		return err
+	}
+	fout := c.String("output")
+	if fout == "yaml" {
+		yaml, err := cfg.ToYaml()
+		if err != nil {
+			return err
+		}
+		fmt.Print(yaml)
+	} else if fout == "names" {
+		fmt.Printf("name\tdescription\n%s\t%s\n", *cfg.Github.Name, *cfg.Github.Description)
+	} else {
+		return fmt.Errorf("unsupported output format: %s", fout)
+	}
+	return nil
+}
+
+func getToken(token string) (string, error) {
 	if token != "" {
 		return token, nil
 	}
+	file := os.Getenv("HOME") + "/.config/gitstrap/github_token.txt"
 	if token, err := ioutil.ReadFile(file); err == nil {
 		return string(token), nil
 	}
