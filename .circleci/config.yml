@@ -34,10 +34,7 @@ jobs:
     steps:
       - run: go env
       - checkout
-      - run: go get -v -t ./...
-      - run: go build -o /dev/null .
-      - run: go build -o /dev/null ./cmd/gitstrap
+      - run: go build
+      - run: go build ./cmd/gitstrap
       - run: go test .
-      - run: golangci-lint run
       - run: pdd --source=$(pwd) --verbose --file=/dev/null
-      - run: gitlint

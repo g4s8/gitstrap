@@ -25,9 +25,3 @@ jobs:
       run: go build -v ./cmd/gitstrap
     - name: Test
       run: go test -v
-    - name: Lint
-      uses: actions-contrib/golangci-lint@master
-      env:
-        GOROOT: ""
-      with:
-        args: "run"
