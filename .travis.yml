@@ -23,21 +23,16 @@
 ---
 language: go
 go:
-  - 1.11.x
-before_install:
-  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.17.1
-  - ./bin/golangci-lint --version
-  - go get -v -t ./...
+  - 1.12.x
 script:
-  - go build -o /dev/null .
-  - go build -o /dev/null ./cmd/gitstrap
+  - go build
+  - go build ./cmd/gitstrap
   - go test .
-  - ./bin/golangci-lint run
 deploy:
-- provider: script
-  skip_cleanup: true
-  script: curl -sL https://git.io/goreleaser | bash
-  on:
-    tags: true
-    condition: $TRAVIS_OS_NAME = linux
-    condition: $TRAVIS_GO_VERSION = 1.11.x
+  - provider: script
+    skip_cleanup: true
+    script: curl -sL https://git.io/goreleaser | bash
+    "on":
+      tags: true
+      condition: $TRAVIS_OS_NAME = linux
+      condition: $TRAVIS_GO_VERSION = 1.12.x
