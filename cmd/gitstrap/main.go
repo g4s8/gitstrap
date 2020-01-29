@@ -35,11 +35,6 @@ func main() {
 	if token, err = getToken(token, os.Getenv("HOME")+"/.config/gitstrap/github_token.txt"); err != nil {
 		fatal(err)
 	}
-	if _, found := os.LookupEnv("SSH_AGENT_PID"); !found {
-		fmt.Println("ssh-agent is not running. " +
-			"You should start it before running gitstrap and add correct ssh key to be able to access Github repo via git")
-		os.Exit(1)
-	}
 	cfg := &gitstrap.Config{}
 	if err := cfg.ParseFile(config); err != nil {
 		fatal(err)
@@ -58,6 +53,11 @@ func main() {
 	}
 	if accept {
 		options["accept"] = "yes"
+	}
+	if _, found := os.LookupEnv("SSH_AGENT_PID"); found {
+		options["ssh"] = "yes"
+	} else {
+		options["token"] = token
 	}
 	if debug {
 		fmt.Printf("strap = %s\n", g)

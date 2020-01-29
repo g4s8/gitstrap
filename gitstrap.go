@@ -6,8 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/go-github/github"
 	"github.com/g4s8/gopwd"
+	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -24,7 +24,6 @@ const (
 	// V1 - first version of config
 	V1 = "v1"
 )
-
 
 // Config - gitstrap config
 type Config struct {
@@ -228,7 +227,14 @@ func (strap *strapCreate) Run(opt Options) error {
 	}
 	owner, err := getOwner(strap.base, opt)
 	if strap.base.debug {
-		fmt.Printf("RUN: as %s options = %s\n", owner, opt)
+		if _, found := opt["token"]; found {
+			token := opt["token"]
+			opt["token"] = "***" + token[:3]
+			fmt.Printf("RUN: as %s options = %s\n", owner, opt)
+			opt["token"] = token
+		} else {
+			fmt.Printf("RUN: as %s options = %s\n", owner, opt)
+		}
 	}
 	if err != nil {
 		return strap.err("failed to get current user", err)
@@ -237,7 +243,7 @@ func (strap *strapCreate) Run(opt Options) error {
 	if err != nil {
 		return strap.err("failed to create github repo", err)
 	}
-	if err := gitSync(repo); err != nil {
+	if err := gitSync(repo, opt); err != nil {
 		return strap.err("failed to sync git repo", err)
 	}
 	if err := strap.base.applyTemplates(repo); err != nil {
@@ -251,6 +257,11 @@ func (strap *strapCreate) Run(opt Options) error {
 	}
 	if err := strap.base.addCollaborators(owner, repo); err != nil {
 		return strap.err("failed to add collaborators", err)
+	}
+	if _, ssh := opt["ssh"]; !ssh {
+		if err := replaceToSshUrl(repo); err != nil {
+			return strap.err("failed to restore shh url for repository", err)
+		}
 	}
 
 	fmt.Printf("Created: https://github.com/%s/%s\n", owner, *repo.Name)
@@ -315,6 +326,10 @@ func (strap *strapCtx) applyTemplates(repo *github.Repository) error {
 		fmt.Printf("Template %s applied\n", tpl.Name())
 	}
 	return nil
+}
+
+func replaceToSshUrl(repo *github.Repository) error {
+	return exec.Command("git", "remote", "set-url", "origin", repo.GetSSHURL()).Run()
 }
 
 func readTemplate(name string) ([]byte, error) {
@@ -436,11 +451,17 @@ func getOwner(strap *strapCtx, opt Options) (string, error) {
 	return *me.Login, nil
 }
 
-func gitSync(repo *github.Repository) error {
+func gitSync(repo *github.Repository, opt Options) error {
 	if err := exec.Command("git", "init", ".").Run(); err != nil {
 		return err
 	}
-	if err := exec.Command("git", "remote", "add", "origin", *repo.SSHURL).Run(); err != nil {
+	var url string
+	if _, ssh := opt["ssh"]; ssh {
+		url = *repo.SSHURL
+	} else {
+		url = fmt.Sprintf("https://%s:%s@github.com/%s.git", *repo.Owner.Login, opt["token"], repo.GetFullName())
+	}
+	if err := exec.Command("git", "remote", "add", "origin", url).Run(); err != nil {
 		return err
 	}
 	if err := exec.Command("git", "fetch", "origin").Run(); err != nil {
