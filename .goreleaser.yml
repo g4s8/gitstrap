@@ -5,11 +5,11 @@ before:
 builds:
   -
     main: ./cmd/gitstrap/main.go
-    ldflags:
-      - -s -w
-        -X "main.buildDate={{.Date}}"
-        -X "main.buildVersion={{.Env.TRAVIS_TAG}}{{.Env.TRAVIS_BUILD_NUMBER}}"
-        -X "main.buildCommit={{.Env.TRAVIS_COMMIT}}"
+    # ldflags:
+    #   - -s -w
+    #     -X "main.buildDate={{.Date}}"
+    #     -X "main.buildVersion={{.Env.TRAVIS_TAG}}{{.Env.TRAVIS_BUILD_NUMBER}}"
+    #     -X "main.buildCommit={{.Env.TRAVIS_COMMIT}}"
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
     replacements:
