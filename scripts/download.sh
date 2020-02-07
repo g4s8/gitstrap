@@ -21,7 +21,7 @@ download() {
     exit 1
   }
   rm -f "$TAR_FILE"
-  local url="$RELEASES_URL/download/$VERSION/${NAME}_${VERSION}_$(uname -s)_$(uname -m).tar.gz"
+  local url="$RELEASES_URL/download/$VERSION/${NAME}_$(uname -s)_$(uname -m).tar.gz"
   curl -sL -o "$TAR_FILE" $url
 }
 
