@@ -7,14 +7,14 @@ builds:
         -X "main.buildDate={{.Date}}"
         -X "main.buildVersion={{.Env.TRAVIS_TAG}}{{.Env.TRAVIS_BUILD_NUMBER}}"
         -X "main.buildCommit={{.Env.TRAVIS_COMMIT}}"
-archive:
+archives:
   replacements:
     darwin: Darwin
     linux: Linux
     windows: Windows
     386: i386
     amd64: x86_64
-brew:
+brews:
   github:
     owner: g4s8
     name: .tap
