@@ -5,8 +5,6 @@
 [![Managed by Zerocracy](https://www.0crat.com/badge/CF7JL4282.svg)](https://www.0crat.com/p/CF7JL4282)
 
 ![Github actions](https://github.com/g4s8/gitstrap/workflows/Go/badge.svg)
-[![Build Status](https://img.shields.io/travis/g4s8/gitstrap.svg?style=flat-square)](https://travis-ci.org/g4s8/gitstrap)
-[![CircleCI](https://circleci.com/gh/g4s8/gitstrap.svg?style=svg)](https://circleci.com/gh/g4s8/gitstrap)
 [![Hits-of-Code](https://hitsofcode.com/github/g4s8/gitstrap)](https://hitsofcode.com/view/github/g4s8/gitstrap)
 [![codebeat badge](https://codebeat.co/badges/89bbb569-fba9-4c68-9b21-e2520b59fbeb)](https://codebeat.co/projects/github-com-g4s8-gitstrap-master)
 
