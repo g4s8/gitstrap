@@ -99,7 +99,7 @@ Later, you may decide to update this configuration, e.g. add new webhook,
 removed collaborators or change the description. Just edit your YAML config file
 and run `gitstrap apply -f ./filename.yaml` again.
 
-### Delte repo
+### Delete repo
 
 To delete GitHub repository use `delete` command:
 `gitstrap delete -f config.yaml`.
