@@ -1,12 +1,9 @@
 package github
 
 import (
-	"errors"
 	"github.com/g4s8/gitstrap/context"
 	"log"
 )
-// @todo #44:30min Remove unused variable
-var errNoRepoName = errors.New("no repo name config")
 
 // Delete GitHub repo
 func (r *Repo) Delete(ctx *context.Context) error {
