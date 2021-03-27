@@ -19,7 +19,7 @@ test: $(OUTPUT)
 	go test ./internal/...
 
 lint: $(OUTPUT)
-	gometalinter run
+	golangci-lint run
 
 .PHONY: build clean test lint
 
