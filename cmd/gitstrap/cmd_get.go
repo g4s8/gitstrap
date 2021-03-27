@@ -26,6 +26,11 @@ var getCommand = &cli.Command{
 				},
 			},
 		},
+		{
+			Name:   "org",
+			Usage:  "Get organization",
+			Action: cmdGetOrg,
+		},
 	},
 }
 
@@ -45,7 +50,29 @@ func cmdGetRepo(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	repo, errs := g.Get(name, owner, format)
+	repo, errs := g.GetRepo(name, owner, format)
+	if err := view.RenderOn(view.Console, repo, errs); err != nil {
+		fatal(err)
+	}
+	return nil
+}
+
+func cmdGetOrg(c *cli.Context) error {
+	token, err := resolveToken(c)
+	if err != nil {
+		return err
+	}
+	name := c.Args().First()
+	if name == "" {
+		return fmt.Errorf("Requires repository name argument")
+	}
+	format := spec.MfYaml
+	debug := os.Getenv("DEBUG") != ""
+	g, err := gitstrap.New(c.Context, token, debug)
+	if err != nil {
+		return err
+	}
+	repo, errs := g.GetOrg(name, format)
 	if err := view.RenderOn(view.Console, repo, errs); err != nil {
 		fatal(err)
 	}

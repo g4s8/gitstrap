@@ -31,6 +31,7 @@ type Printable interface {
 	PrintOn(Printer)
 }
 
+// RenderOn printer a channel of printables
 func RenderOn(v Printer, items <-chan Printable, errs <-chan error) error {
 	for {
 		select {

@@ -10,7 +10,13 @@ import (
 
 // FromDecoder creates model from yaml decoder
 func (m *Model) FromDecoder(d *yaml.Decoder) error {
-	return d.Decode(m)
+	if err := d.Decode(m); err != nil {
+		return err
+	}
+	if m.Metadata == nil {
+		m.Metadata = new(Metadata)
+	}
+	return nil
 }
 
 // FromReader creates model from io reader

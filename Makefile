@@ -16,10 +16,10 @@ clean:
 	rm -f $(OUTPUT)
 
 test: $(OUTPUT)
-	# go test .
+	go test ./internal/...
 
 lint: $(OUTPUT)
-	# gometalinter .
+	gometalinter run
 
 .PHONY: build clean test lint
 

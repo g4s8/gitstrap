@@ -36,7 +36,6 @@ type Repo struct {
 	License             *string  `json:"license,omitempty"`
 	Visibiliy           *string  `yaml:"visibility,omitempty"`
 	Features            []string `yaml:"features"`
-	Collaborators       `yaml:"collaborators,omitempty"`
 }
 
 // Collaborator on repo

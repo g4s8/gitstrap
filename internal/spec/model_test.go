@@ -10,7 +10,7 @@ import (
 func Test_unmarshall(t *testing.T) {
 	assert := m.Assert(t)
 	src := []byte(`
-version: "v1"
+version: "v2.0-alpha"
 kind: "Repository"
 metadata:
   name: gitstrap
@@ -38,7 +38,6 @@ spec:
 		assert := m.Assert(t)
 		repo, typeok := model.Spec.(*Repo)
 		assert.That("Spec type is OK", typeok, m.Is(true))
-		assert.That("Repo ID is OK", repo.ID, m.Eq(int64(1)))
 		assert.That("Repo description is OK", *repo.Description, m.Eq("for test"))
 	})
 }
@@ -49,7 +48,6 @@ func Test_marshall(t *testing.T) {
 	model.Version = Version
 	model.Kind = KindRepo
 	repo := new(Repo)
-	repo.ID = 1
 	model.Spec = repo
 	_, err := yaml.Marshal(model)
 	assert.That("Marshal without errors", err, m.Nil())
