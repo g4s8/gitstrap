@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/g4s8/gitstrap/internal/gitstrap"
 	"github.com/g4s8/gitstrap/internal/spec"
-	"github.com/g4s8/gitstrap/internal/view"
 	"github.com/urfave/cli/v2"
 )
 
@@ -12,8 +13,11 @@ var deleteCommand = &cli.Command{
 	Aliases: []string{"remove", "del", "rm"},
 	Usage:   "Delete resource",
 	Action: cmdForEachModel(func(g *gitstrap.Gitstrap, m *spec.Model) error {
-		rs, errs := g.Delete(m)
-		return view.RenderOn(view.Console, rs, errs)
+		if err := g.Delete(m); err != nil {
+			return err
+		}
+		log.Printf("Deleted: %s", m.Info())
+		return nil
 	}),
 	Flags: []cli.Flag{
 		&cli.StringFlag{

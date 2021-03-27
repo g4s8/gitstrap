@@ -46,10 +46,3 @@ func resolveToken(c *cli.Context) (string, error) {
 	}
 	return "", fmt.Errorf("GitHub token neither given as a flag, nor found in %s", file)
 }
-
-func fatal(err error) {
-	if _, xerr := fmt.Fprintf(os.Stderr, "%s\n", err); xerr != nil {
-		fmt.Printf("Failed to print error: %s", xerr)
-	}
-	os.Exit(1)
-}

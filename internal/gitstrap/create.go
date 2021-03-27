@@ -5,62 +5,39 @@ import (
 	"fmt"
 
 	"github.com/g4s8/gitstrap/internal/spec"
-	"github.com/g4s8/gitstrap/internal/view"
 	"github.com/google/go-github/v33/github"
 )
 
 type errUnsupportModelKind struct {
-	kind string
+	kind spec.Kind
 }
 
 func (e *errUnsupportModelKind) Error() string {
 	return fmt.Sprintf("Unsupported model kind: `%s`", e.kind)
 }
 
-func (g *Gitstrap) Create(m *spec.Model) (<-chan view.Printable, <-chan error) {
-	res := make(chan view.Printable)
-	errs := make(chan error)
+func (g *Gitstrap) Create(m *spec.Model) error {
 	ctx, cancel := g.newContext()
-	go func() {
-		defer close(res)
-		defer close(errs)
-		defer cancel()
-		switch m.Kind {
-		case spec.KindRepo:
-			spec := m.Spec.(*spec.Repo)
-			r, err := g.createRepo(ctx, spec, m.Metadata)
-			if err != nil {
-				errs <- err
-			} else {
-				res <- r
-			}
-		case spec.KindReadme:
-			spec := m.Spec.(*spec.Readme)
-			r, err := g.createReadme(ctx, spec, m.Metadata)
-			if err != nil {
-				errs <- err
-			} else {
-				res <- r
-			}
-		default:
-			errs <- &errUnsupportModelKind{m.Kind}
-		}
-	}()
-	return res, errs
+	defer cancel()
+	switch m.Kind {
+	case spec.KindRepo:
+		return g.createRepo(ctx, m)
+	case spec.KindReadme:
+		return g.createReadme(ctx, m)
+	default:
+		return &errUnsupportModelKind{m.Kind}
+	}
 }
 
-type createRepoResult struct {
-	repo *github.Repository
-}
-
-func (cr *createRepoResult) PrintOn(p view.Printer) {
-	p.Print(fmt.Sprintf("Repository [%d] %s created", cr.repo.GetID(), cr.repo.GetFullName()))
-}
-
-func (g *Gitstrap) createRepo(ctx context.Context, repo *spec.Repo, meta *spec.Metadata) (view.Printable, error) {
+func (g *Gitstrap) createRepo(ctx context.Context, m *spec.Model) error {
+	meta := m.Metadata
+	repo := new(spec.Repo)
+	if err := m.RepoSpec(repo); err != nil {
+		return err
+	}
 	grepo := new(github.Repository)
 	if err := repo.ToGithub(grepo); err != nil {
-		return nil, err
+		return err
 	}
 	grepo.Name = &meta.Name
 	fn := fmt.Sprintf("%s/%s", meta.Owner, meta.Name)
@@ -71,17 +48,12 @@ func (g *Gitstrap) createRepo(ctx context.Context, repo *spec.Repo, meta *spec.M
 	}
 	r, _, err := g.gh.Repositories.Create(ctx, owner, grepo)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &createRepoResult{r}, nil
-}
-
-type createReadmeResult struct {
-	*github.RepositoryContentResponse
-}
-
-func (r *createReadmeResult) PrintOn(p view.Printer) {
-	p.Print(fmt.Sprintf("README created with %s", r.GetSHA()))
+	m.Metadata.FromGithubRepo(r)
+	repo.FromGithub(r)
+	m.Spec = repo
+	return nil
 }
 
 type errReadmeExists struct {
@@ -100,14 +72,19 @@ func (e *errReadmeNotFile) Error() string {
 	return fmt.Sprintf("README is no a file: `%s`", e.rtype)
 }
 
-func (g *Gitstrap) createReadme(ctx context.Context, spec *spec.Readme, meta *spec.Metadata) (view.Printable, error) {
+func (g *Gitstrap) createReadme(ctx context.Context, m *spec.Model) error {
+	meta := m.Metadata
+	spec := new(spec.Readme)
+	if err := m.ReadmeSpec(spec); err != nil {
+		return err
+	}
 	owner := spec.Selector.Owner
 	if owner == "" {
 		owner = g.me
 	}
 	repo, _, err := g.gh.Repositories.Get(ctx, owner, spec.Selector.Repository)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	msg := "Updated README.md"
 	if cm, ok := meta.Annotations["commitMessage"]; ok {
@@ -124,20 +101,20 @@ func (g *Gitstrap) createReadme(ctx context.Context, spec *spec.Readme, meta *sp
 			goto SKIP_GET
 		}
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if *cnt.Type != "file" {
-			return nil, &errReadmeNotFile{*cnt.Type}
+			return &errReadmeNotFile{*cnt.Type}
 		}
 		opts.SHA = cnt.SHA
 	SKIP_GET:
 	}
-	rs, rsp, err := g.gh.Repositories.UpdateFile(ctx, owner, repo.GetName(), "README.md", opts)
+	_, rsp, err := g.gh.Repositories.UpdateFile(ctx, owner, repo.GetName(), "README.md", opts)
 	if err != nil {
 		if rsp.StatusCode == 422 && opts.SHA == nil {
-			return nil, &errReadmeExists{owner, repo.GetName()}
+			return &errReadmeExists{owner, repo.GetName()}
 		}
-		return nil, err
+		return err
 	}
-	return &createReadmeResult{rs}, nil
+	return nil
 }

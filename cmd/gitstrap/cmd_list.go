@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/g4s8/gitstrap/internal/gitstrap"
-	"github.com/g4s8/gitstrap/internal/view"
 	"github.com/urfave/cli/v2"
 )
 
@@ -12,7 +12,6 @@ var listCommand = &cli.Command{
 	Name:    "list",
 	Aliases: []string{"l", "ls", "lst"},
 	Usage:   "List resources",
-	Action:  cmdListRepo,
 	Subcommands: []*cli.Command{
 		{
 			Name:  "repo",
@@ -39,6 +38,7 @@ var listCommand = &cli.Command{
 					Usage: "Filter by stars less than value",
 				},
 			},
+			Action: cmdListRepo,
 		},
 	},
 }
@@ -67,9 +67,27 @@ func cmdListRepo(c *cli.Context) error {
 	if lt := c.Int("stars-lt"); lt > 0 {
 		filter = gitstrap.LfStars(filter, gitstrap.LfStarsLt(lt))
 	}
-	lst, errs := g.List(filter, owner)
-	if err := view.RenderOn(view.Console, lst, errs); err != nil {
-		fatal(err)
+	lst, errs := g.ListRepos(filter, owner)
+	out := os.Stdout
+	var done bool
+	for !done {
+		select {
+		case next, ok := <-lst:
+			if !ok {
+				done = true
+				break
+			}
+			if _, err := next.WriteTo(out); err != nil {
+				return err
+			}
+			fmt.Print(out, "+\n")
+		case err, ok := <-errs:
+			if !ok {
+				done = true
+				break
+			}
+			return err
+		}
 	}
 	return nil
 }

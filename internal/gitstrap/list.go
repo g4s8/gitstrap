@@ -2,14 +2,14 @@ package gitstrap
 
 import (
 	"fmt"
+	"io"
 	"math"
 	"strconv"
 
-	"github.com/g4s8/gitstrap/internal/view"
 	"github.com/google/go-github/v33/github"
 )
 
-type listResult struct {
+type RepoInfo struct {
 	name   string
 	public bool
 	fork   bool
@@ -17,14 +17,14 @@ type listResult struct {
 	forks  int
 }
 
-func (r *listResult) isFork() (s string) {
+func (r *RepoInfo) isFork() (s string) {
 	if r.fork {
 		s = "fork"
 	}
 	return
 }
 
-func (r *listResult) visibility() (s string) {
+func (r *RepoInfo) visibility() (s string) {
 	if r.public {
 		s = "public"
 	} else {
@@ -33,7 +33,7 @@ func (r *listResult) visibility() (s string) {
 	return
 }
 
-func (r *listResult) starsStr() string {
+func (r *RepoInfo) starsStr() string {
 	if r.stars < 1000 {
 		return strconv.Itoa(r.stars)
 	}
@@ -44,7 +44,7 @@ func (r *listResult) starsStr() string {
 	return fmt.Sprintf("%dK", int(math.Floor(val)))
 }
 
-func (r *listResult) forksStr() string {
+func (r *RepoInfo) forksStr() string {
 	if r.forks < 1000 {
 		return strconv.Itoa(r.stars)
 	}
@@ -55,18 +55,19 @@ func (r *listResult) forksStr() string {
 	return fmt.Sprintf("%dK", int(math.Floor(val)))
 }
 
-func (r *listResult) PrintOn(p view.Printer) {
-	p.Print(fmt.Sprintf("| %40s | %4s | %5s | %8s ★ | %8s ⎇ |",
+func (r *RepoInfo) WriteTo(w io.Writer) (int64, error) {
+	n, err := fmt.Fprintf(w, "| %40s | %4s | %7s | %8s ★ | %8s ⎇ |=",
 		r.name, r.isFork(), r.visibility(),
-		r.starsStr(), r.forksStr()))
+		r.starsStr(), r.forksStr())
+	return int64(n), err
 }
 
-// List of repositories
-func (g *Gitstrap) List(filter ListFilter, owner string) (<-chan view.Printable, <-chan error) {
+// ListRepos lists repositories
+func (g *Gitstrap) ListRepos(filter ListFilter, owner string) (<-chan *RepoInfo, <-chan error) {
 	if filter == nil {
 		filter = LfNop
 	}
-	res := make(chan view.Printable)
+	res := make(chan *RepoInfo)
 	errs := make(chan error)
 	ctx, cancel := g.newContext()
 	go func() {
@@ -81,7 +82,7 @@ func (g *Gitstrap) List(filter ListFilter, owner string) (<-chan view.Printable,
 			return
 		}
 		for _, item := range list {
-			entry := new(listResult)
+			entry := new(RepoInfo)
 			entry.name = item.GetFullName()
 			entry.public = !item.GetPrivate()
 			entry.fork = item.GetFork()
@@ -91,7 +92,7 @@ func (g *Gitstrap) List(filter ListFilter, owner string) (<-chan view.Printable,
 				res <- entry
 			}
 		}
-		if rsp.NextPage < rsp.LastPage {
+		if opts.Page < rsp.LastPage {
 			opts.Page = rsp.NextPage
 			goto PAGINATION
 		}

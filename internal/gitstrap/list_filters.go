@@ -2,7 +2,7 @@ package gitstrap
 
 // ListFilter for list results
 type ListFilter interface {
-	check(*listResult) bool
+	check(*RepoInfo) bool
 }
 
 // LfNop - list filter does nothing
@@ -10,7 +10,7 @@ var LfNop ListFilter = &lfNop{}
 
 type lfNop struct{}
 
-func (f *lfNop) check(r *listResult) bool {
+func (f *lfNop) check(r *RepoInfo) bool {
 	return true
 }
 
@@ -24,7 +24,7 @@ type lfFork struct {
 	fork   bool
 }
 
-func (f *lfFork) check(r *listResult) bool {
+func (f *lfFork) check(r *RepoInfo) bool {
 	return f.origin.check(r) && r.fork == f.fork
 }
 
@@ -55,6 +55,6 @@ type lfStars struct {
 	criteria LfStarsCriteria
 }
 
-func (f *lfStars) check(i *listResult) bool {
+func (f *lfStars) check(i *RepoInfo) bool {
 	return f.origin.check(i) && f.criteria(i.stars)
 }
