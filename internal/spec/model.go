@@ -32,6 +32,8 @@ const (
 	KindRepo = "Repository"
 	// KindReadme - repository readme model kind
 	KindReadme = "Readme"
+	// KindOrg - organization model kind
+	KindOrg = "Organization"
 )
 
 type errUnknownKind struct {
