@@ -36,17 +36,17 @@ func (g *Gitstrap) createRepo(m *spec.Model) error {
 	if err := m.GetSpec(repo); err != nil {
 		return err
 	}
+	if repo.DefaultBranch == "" {
+		repo.DefaultBranch = "master"
+	}
+	owner := g.getOwner(m)
+	fn := fmt.Sprintf("%s/%s", owner, meta.Name)
 	grepo := new(github.Repository)
 	if err := repo.ToGithub(grepo); err != nil {
 		return err
 	}
 	grepo.Name = &meta.Name
-	fn := fmt.Sprintf("%s/%s", meta.Owner, meta.Name)
 	grepo.FullName = &fn
-	owner := meta.Owner
-	if owner == "" || owner == g.me {
-		owner = ""
-	}
 	r, _, err := g.gh.Repositories.Create(ctx, owner, grepo)
 	if err != nil {
 		return err

@@ -2,3 +2,4 @@ dist/**
 bin/**
 _old/
 /gitstrap
+.gitstrap.yaml

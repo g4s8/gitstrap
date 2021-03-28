@@ -27,7 +27,7 @@ const (
 type Repo struct {
 	Description         *string  `yaml:"description,omitempty"`
 	Homepage            *string  `yaml:"homepage,omitempty"`
-	DefaultBranch       *string  `yaml:"defaultBranch,omitempty"`
+	DefaultBranch       string   `yaml:"defaultBranch,omitempty"`
 	MergeStrategy       []string `yaml:"mergeStrategy,omitempty"`
 	DeleteBranchOnMerge *bool    `yaml:"deleteBranchOnMerge,omitempty"`
 	Topics              []string `yaml:"topics,omitempty"`
@@ -67,7 +67,7 @@ func (cls *Collaborators) FromUsers(us []*github.User) {
 func (spec *Repo) FromGithub(repo *github.Repository) {
 	spec.Description = repo.Description
 	spec.Homepage = repo.Homepage
-	spec.DefaultBranch = repo.DefaultBranch
+	spec.DefaultBranch = repo.GetDefaultBranch()
 	if l := repo.GetLicense(); l != nil {
 		spec.License = l.Key
 	}
@@ -117,7 +117,7 @@ func (spec *Repo) FromGithub(repo *github.Repository) {
 func (s *Repo) ToGithub(r *github.Repository) error {
 	r.Description = s.Description
 	r.Homepage = s.Homepage
-	r.DefaultBranch = s.DefaultBranch
+	r.DefaultBranch = &s.DefaultBranch
 	r.AllowMergeCommit = new(bool)
 	r.AllowRebaseMerge = new(bool)
 	r.AllowSquashMerge = new(bool)
