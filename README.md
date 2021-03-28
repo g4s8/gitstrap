@@ -1,6 +1,6 @@
 # Gitstrap
 
-![Github actions](https://github.com/g4s8/gitstrap/workflows/Go/badge.svg)
+[![CI](https://github.com/g4s8/gitstrap/actions/workflows/go.yml/badge.svg)](https://github.com/g4s8/gitstrap/actions/workflows/go.yml)
 [![Hits-of-Code](https://hitsofcode.com/github/g4s8/gitstrap)](https://hitsofcode.com/view/github/g4s8/gitstrap)
 [![codebeat badge](https://codebeat.co/badges/89bbb569-fba9-4c68-9b21-e2520b59fbeb)](https://codebeat.co/projects/github-com-g4s8-gitstrap-master)
 
