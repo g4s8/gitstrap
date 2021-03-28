@@ -2,6 +2,7 @@ package gitstrap
 
 import (
 	"github.com/g4s8/gitstrap/internal/spec"
+	"github.com/google/go-github/v33/github"
 )
 
 // GetRepo repository resource
@@ -49,4 +50,53 @@ func (g *Gitstrap) GetOrg(name string) (*spec.Model, error) {
 	org.FromGithub(o)
 	model.Spec = org
 	return model, nil
+}
+
+const (
+	hooksPageSize = 10
+)
+
+func (g *Gitstrap) GetRepoHooks(owner, name string) (<-chan *spec.Model, <-chan error) {
+	ctx, cancel := g.newContext()
+	out := make(chan *spec.Model, hooksPageSize)
+	errs := make(chan error)
+	if owner == "" {
+		owner = g.me
+	}
+	go func() {
+		defer close(out)
+		defer close(errs)
+		defer cancel()
+
+		opts := &github.ListOptions{PerPage: hooksPageSize}
+		for {
+			ghooks, rsp, err := g.gh.Repositories.ListHooks(ctx, owner, name, opts)
+			if err != nil {
+				errs <- err
+				return
+			}
+			for _, gh := range ghooks {
+				s, err := spec.NewModel(spec.KindHook)
+				if err != nil {
+					panic(err)
+				}
+				s.Metadata.Owner = owner
+				s.Metadata.ID = gh.ID
+				hook := new(spec.Hook)
+				hook.Selector.Repository = name
+				if err := hook.FromGithub(gh); err != nil {
+					errs <- err
+					return
+				}
+				s.Spec = hook
+				out <- s
+			}
+			if opts.Page == rsp.LastPage {
+				break
+			}
+			opts.Page = rsp.NextPage
+		}
+
+	}()
+	return out, errs
 }

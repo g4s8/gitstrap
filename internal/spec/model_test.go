@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"fmt"
 	"testing"
 
 	m "github.com/g4s8/go-matchers"
@@ -51,4 +52,13 @@ func Test_marshall(t *testing.T) {
 	model.Spec = repo
 	_, err := yaml.Marshal(model)
 	assert.That("Marshal without errors", err, m.Nil())
+}
+
+func Test_validate(t *testing.T) {
+	for _, k := range []Kind{KindRepo, KindHook, KindOrg, KindReadme} {
+		t.Run(fmt.Sprintf("validate kind %s", k), func(t *testing.T) {
+			assert := m.Assert(t)
+			assert.That("no validation errors", k.validate(), m.Nil())
+		})
+	}
 }

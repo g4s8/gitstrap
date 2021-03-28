@@ -8,7 +8,6 @@ import (
 type Readme struct {
 	Selector struct {
 		Repository string `yaml:"repository"`
-		Owner      string `yaml:"owner,omitempty"`
 	} `yaml:"selector"`
 	Title    string `yaml:"title,omitempty"`
 	Abstract string `yaml:"abstract,omitempty"`

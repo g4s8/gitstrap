@@ -1,7 +1,7 @@
 package gitstrap
 
 import (
-	"context"
+	"errors"
 	"fmt"
 
 	"github.com/g4s8/gitstrap/internal/spec"
@@ -9,19 +9,21 @@ import (
 )
 
 func (g *Gitstrap) Delete(m *spec.Model) error {
-	ctx, cancel := g.newContext()
-	defer cancel()
 	switch m.Kind {
 	case spec.KindRepo:
-		return g.deleteRepo(ctx, m)
+		return g.deleteRepo(m)
 	case spec.KindReadme:
-		return g.deleteReadme(ctx, m)
+		return g.deleteReadme(m)
+	case spec.KindHook:
+		return g.deleteHook(m)
 	default:
 		return &errUnsupportModelKind{m.Kind}
 	}
 }
 
-func (g *Gitstrap) deleteRepo(ctx context.Context, m *spec.Model) error {
+func (g *Gitstrap) deleteRepo(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
 	meta := m.Metadata
 	owner := meta.Owner
 	if owner == "" {
@@ -41,13 +43,15 @@ func (e *errReadmeNotExists) Error() string {
 	return fmt.Sprintf("README `%s/%s` doesn't exist", e.owner, e.repo)
 }
 
-func (g *Gitstrap) deleteReadme(ctx context.Context, m *spec.Model) error {
+func (g *Gitstrap) deleteReadme(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
 	spec := new(spec.Readme)
 	meta := m.Metadata
-	if err := m.ReadmeSpec(spec); err != nil {
+	if err := m.GetSpec(spec); err != nil {
 		return err
 	}
-	owner := spec.Selector.Owner
+	owner := m.Metadata.Owner
 	if owner == "" {
 		owner = g.me
 	}
@@ -78,4 +82,29 @@ func (g *Gitstrap) deleteReadme(ctx context.Context, m *spec.Model) error {
 		return err
 	}
 	return nil
+}
+
+var errHookIdRequired = errors.New("Hook metadata ID required")
+
+func (g *Gitstrap) deleteHook(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
+	hook := new(spec.Hook)
+	if err := m.GetSpec(hook); err != nil {
+		return err
+	}
+	owner := g.getOwner(m)
+	if m.Metadata.ID == nil {
+		return errHookIdRequired
+	}
+	id := *m.Metadata.ID
+	if hook.Selector.Repository != "" {
+		_, err := g.gh.Repositories.DeleteHook(ctx, owner, hook.Selector.Repository, id)
+		return err
+	} else if hook.Selector.Organization != "" {
+		_, err := g.gh.Organizations.DeleteHook(ctx, hook.Selector.Organization, id)
+		return err
+	} else {
+		return errHookSelectorEmpty
+	}
 }
