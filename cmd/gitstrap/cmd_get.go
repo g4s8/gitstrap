@@ -34,6 +34,12 @@ var getCommand = &cli.Command{
 			Name:   "hooks",
 			Usage:  "Get webhooks configurations",
 			Action: cmdGetHooks,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:  "owner",
+					Usage: "User name or organization owner of hooks repo",
+				},
+			},
 		},
 	},
 }
@@ -91,9 +97,25 @@ func cmdGetHooks(c *cli.Context) error {
 		return fmt.Errorf("Requires repository name argument")
 	}
 	debug := os.Getenv("DEBUG") != ""
-	_, err = gitstrap.New(c.Context, token, debug)
+	g, err := gitstrap.New(c.Context, token, debug)
 	if err != nil {
 		return err
 	}
-	return nil
+	stream, errs := g.GetRepoHooks(c.String("owner"), name)
+	enc := yaml.NewEncoder(os.Stdout)
+	for {
+		select {
+		case h, ok := <-stream:
+			if !ok {
+				return nil
+			}
+			if err := enc.Encode(h); err != nil {
+				return err
+			}
+		case err, ok := <-errs:
+			if ok {
+				return err
+			}
+		}
+	}
 }

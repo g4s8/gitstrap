@@ -26,12 +26,21 @@ const (
 type Kind string
 
 func (k Kind) validate() error {
-	for _, v := range [...]Kind{KindRepo, KindReadme, KindOrg} {
+	for _, v := range [...]Kind{KindRepo, KindReadme, KindOrg, KindHook} {
 		if k == v {
 			return nil
 		}
 	}
 	return &errUnknownKind{k}
+}
+
+// Require this kind to be another kind
+// panics with ErrInvalidKind error if doesn't.
+// Could be handlerd with ErrInvalidKind.RecoverHandler
+func (k Kind) Require(req Kind) {
+	if k != req {
+		panic(&ErrInvalidKind{Expected: req, Actual: k})
+	}
 }
 
 const (
@@ -41,6 +50,8 @@ const (
 	KindReadme = Kind("Readme")
 	// KindOrg - organization model kind
 	KindOrg = Kind("Organization")
+	// KindHook - repository webhook
+	KindHook = Kind("WebHook")
 )
 
 // NewModel with kind
@@ -63,58 +74,73 @@ func (e *errUnknownKind) Error() string {
 	return fmt.Sprintf("unknown spec kind: `%s`", e.kind)
 }
 
-type errInvalidKind struct {
-	actual Kind
-	expect Kind
+// ErrInvalidKind - error that kind is not the value as expected
+type ErrInvalidKind struct {
+	// Expected and Actual values of kind
+	Expected, Actual Kind
 }
 
-func (e *errInvalidKind) Error() string {
-	return fmt.Sprintf("Invalid model kind: expects `%s` but was `%s`", e.expect, e.actual)
+func (e *ErrInvalidKind) Error() string {
+	return fmt.Sprintf("Invalid model kind: expects `%s` but was `%s`", e.Expected, e.Actual)
+}
+
+// RecoverHandler could be used to catch this error on panic with defer
+func (e *ErrInvalidKind) RecoverHandler(out *error) {
+	if rec := recover(); rec != nil {
+		if err, ok := rec.(error); ok && errors.Is(err, e) {
+			*out = err
+		} else {
+			panic(rec)
+		}
+	}
 }
 
 type errInvalidSpecType struct {
-	expect interface{}
-	spec   interface{}
+	spec interface{}
 }
 
 func (e *errInvalidSpecType) Error() string {
-	return fmt.Sprintf("Invalid spec type: expects `%T` but was `%T`", e.expect, e.spec)
+	return fmt.Sprintf("Invalid spec type `%T`", e.spec)
 }
 
 var errSpecIsNil = errors.New("Model spec is nil")
 
-// RepoSpec extracted from model
-func (m *Model) RepoSpec(r *Repo) error {
-	if m.Kind != KindRepo {
-		return &errInvalidKind{m.Kind, KindRepo}
-	}
+// GetSpec extracts a spec from model
+func (m *Model) GetSpec(out interface{}) (re error) {
 	if m.Spec == nil {
 		return errSpecIsNil
 	}
-	switch spec := m.Spec.(type) {
+	errh := new(ErrInvalidKind)
+	defer errh.RecoverHandler(&re)
+	var ok bool
+	switch s := out.(type) {
 	case *Repo:
-		*r = *spec
-		return nil
-	default:
-		return &errInvalidSpecType{r, spec}
-	}
-}
-
-// ReadmeSpec extracted from model
-func (m *Model) ReadmeSpec(r *Readme) error {
-	if m.Kind != KindReadme {
-		return &errInvalidKind{m.Kind, KindReadme}
-	}
-	if m.Spec == nil {
-		return errSpecIsNil
-	}
-	switch spec := m.Spec.(type) {
+		m.Kind.Require(KindRepo)
+		var t *Repo
+		t, ok = m.Spec.(*Repo)
+		*s = *t
 	case *Readme:
-		*r = *spec
-		return nil
+		var t *Readme
+		m.Kind.Require(KindReadme)
+		t, ok = m.Spec.(*Readme)
+		*s = *t
+	case *Org:
+		var t *Org
+		m.Kind.Require(KindOrg)
+		t, ok = m.Spec.(*Org)
+		*s = *t
+	case *Hook:
+		var t *Hook
+		m.Kind.Require(KindHook)
+		t, ok = m.Spec.(*Hook)
+		*s = *t
 	default:
-		return &errInvalidSpecType{r, spec}
+		return &errInvalidSpecType{s}
 	}
+	if !ok {
+		return &errInvalidSpecType{m.Spec}
+	}
+	return nil
 }
 
 func (m *Model) MarshalYAML() (interface{}, error) {
@@ -142,6 +168,10 @@ func (m *Model) UnmarshalYAML(value *yaml.Node) error {
 		m.Spec = new(Repo)
 	case KindReadme:
 		m.Spec = new(Readme)
+	case KindOrg:
+		m.Spec = new(Org)
+	case KindHook:
+		m.Spec = new(Hook)
 	default:
 		return &errUnknownKind{m.Kind}
 	}

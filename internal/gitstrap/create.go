@@ -1,7 +1,6 @@
 package gitstrap
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/g4s8/gitstrap/internal/spec"
@@ -17,22 +16,24 @@ func (e *errUnsupportModelKind) Error() string {
 }
 
 func (g *Gitstrap) Create(m *spec.Model) error {
-	ctx, cancel := g.newContext()
-	defer cancel()
 	switch m.Kind {
 	case spec.KindRepo:
-		return g.createRepo(ctx, m)
+		return g.createRepo(m)
 	case spec.KindReadme:
-		return g.createReadme(ctx, m)
+		return g.createReadme(m)
+	case spec.KindHook:
+		return g.createHook(m)
 	default:
 		return &errUnsupportModelKind{m.Kind}
 	}
 }
 
-func (g *Gitstrap) createRepo(ctx context.Context, m *spec.Model) error {
+func (g *Gitstrap) createRepo(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
 	meta := m.Metadata
 	repo := new(spec.Repo)
-	if err := m.RepoSpec(repo); err != nil {
+	if err := m.GetSpec(repo); err != nil {
 		return err
 	}
 	grepo := new(github.Repository)
@@ -72,13 +73,15 @@ func (e *errReadmeNotFile) Error() string {
 	return fmt.Sprintf("README is no a file: `%s`", e.rtype)
 }
 
-func (g *Gitstrap) createReadme(ctx context.Context, m *spec.Model) error {
+func (g *Gitstrap) createReadme(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
 	meta := m.Metadata
 	spec := new(spec.Readme)
-	if err := m.ReadmeSpec(spec); err != nil {
+	if err := m.GetSpec(spec); err != nil {
 		return err
 	}
-	owner := spec.Selector.Owner
+	owner := m.Metadata.Owner
 	if owner == "" {
 		owner = g.me
 	}
@@ -116,5 +119,35 @@ func (g *Gitstrap) createReadme(ctx context.Context, m *spec.Model) error {
 		}
 		return err
 	}
+	return nil
+}
+
+func (g *Gitstrap) createHook(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
+	owner := g.getOwner(m)
+	hook := new(spec.Hook)
+	if err := m.GetSpec(hook); err != nil {
+		return err
+	}
+	ghook := new(github.Hook)
+	if err := hook.ToGithub(ghook); err != nil {
+		return err
+	}
+	var err error
+	if hook.Selector.Repository != "" {
+		ghook, _, err = g.gh.Repositories.CreateHook(ctx, owner, hook.Selector.Repository, ghook)
+	} else if hook.Selector.Organization != "" {
+		ghook, _, err = g.gh.Organizations.CreateHook(ctx, hook.Selector.Organization, ghook)
+	} else {
+		err = errHookSelectorEmpty
+	}
+	if err != nil {
+		return err
+	}
+	if err := hook.FromGithub(ghook); err != nil {
+		return err
+	}
+	m.Spec = hook
 	return nil
 }
