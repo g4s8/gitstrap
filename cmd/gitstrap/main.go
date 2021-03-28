@@ -16,6 +16,7 @@ func main() {
 	app := cli.App{
 		Name:        "gitstrap",
 		Description: "CLI tool to manage GitHub repositories",
+		Usage:       "GitHub resource bootstrap",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "token",

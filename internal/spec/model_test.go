@@ -11,7 +11,7 @@ import (
 func Test_unmarshall(t *testing.T) {
 	assert := m.Assert(t)
 	src := []byte(`
-version: "v2.0-alpha"
+version: "v2"
 kind: "Repository"
 metadata:
   name: gitstrap

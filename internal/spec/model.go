@@ -19,7 +19,7 @@ type Model struct {
 
 const (
 	// Version of spec
-	Version = "v2.0-alpha"
+	Version = "v2"
 )
 
 // Kind of specification
