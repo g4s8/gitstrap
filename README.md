@@ -55,3 +55,6 @@ and select all `repo` checkboxes and `delete_repo` checkbox (in case you want gi
 delete repositories). You may use this token as CLI option (`gitstrap --token=ABCD123 apply`)
 or save it in `~/.config/gitstrap/github_token.txt` file.
 
+## Contributing
+
+See [CONTRIBUTING.md](https://github.com/g4s8/gitstrap/blob/master/CONTRIBUTING.md) for details.
