@@ -9,3 +9,14 @@ func (g *Gitstrap) getOwner(m *spec.Model) string {
 	}
 	return owner
 }
+
+//resolveOrg determines whether the owner is an organization.
+//If the owner is the same as the authorized user, it returns an empty string.
+//Otherwise it returns owner, because githab only allows repositories
+//to be created in a personal account or in an organization the user is a member of.
+func (g *Gitstrap) resolveOrg(m *spec.Model) string {
+	if m.Metadata.Owner == g.me {
+		return ""
+	}
+	return m.Metadata.Owner
+}
