@@ -16,6 +16,8 @@ func (g *Gitstrap) Apply(m *spec.Model) error {
 		return g.applyRepo(m)
 	case spec.KindHook:
 		return g.applyHook(m)
+	case spec.KindOrg:
+		return g.applyOrg(m)
 	default:
 		return fmt.Errorf("Unsupported yet %s", m.Kind)
 	}
@@ -87,5 +89,36 @@ func (g *Gitstrap) applyHook(m *spec.Model) error {
 		return err
 	}
 	m.Spec = hook
+	return nil
+}
+
+func (g *Gitstrap) applyOrg(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
+	o := new(spec.Org)
+	if err := m.GetSpec(o); err != nil {
+		return err
+	}
+	meta := m.Metadata
+	name := meta.Name
+	exist, err := gh.OrgExist(g.gh, ctx, name)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return fmt.Errorf("Organization %v does not exist.", name)
+	}
+	org := new(github.Organization)
+	if err := o.ToGithub(org); err != nil {
+		return err
+	}
+	org.ID = meta.ID
+	org, _, err = g.gh.Organizations.Edit(ctx, name, org)
+	if err != nil {
+		return err
+	}
+	o.FromGithub(org)
+	m.Spec = o
+	m.Metadata.FromGithubOrg(org)
 	return nil
 }

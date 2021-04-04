@@ -6,8 +6,8 @@ import (
 	gh "github.com/google/go-github/v33/github"
 )
 
-func RepoExist(cli *gh.Client, ctx context.Context, owner, name string) (bool, error) {
-	_, rsp, err := cli.Repositories.Get(ctx, owner, name)
+func OrgExist(cli *gh.Client, ctx context.Context, name string) (bool, error) {
+	_, rsp, err := cli.Organizations.Get(ctx, name)
 	if err != nil {
 		return false, err
 	}

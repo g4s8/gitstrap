@@ -25,3 +25,14 @@ func (o *Org) FromGithub(g *github.Organization) {
 	o.Description = g.GetDescription()
 	o.Verified = g.GetIsVerified()
 }
+
+func (o *Org) ToGithub(g *github.Organization) error {
+	g.Name = &o.Name
+	g.Description = &o.Description
+	g.Company = &o.Company
+	g.Blog = &o.Blog
+	g.Location = &o.Location
+	g.Email = &o.Email
+	g.TwitterUsername = &o.Twitter
+	return nil
+}
