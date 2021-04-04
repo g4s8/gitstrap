@@ -41,6 +41,18 @@ var getCommand = &cli.Command{
 				},
 			},
 		},
+		{
+			Name:   "teams",
+			Usage:  "Get organization team",
+			Action: cmdGetTeams,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "org",
+					Usage:    "Organization name",
+					Required: true,
+				},
+			},
+		},
 	},
 }
 
@@ -93,15 +105,41 @@ func cmdGetHooks(c *cli.Context) error {
 		return err
 	}
 	name := c.Args().First()
-	if name == "" {
-		return fmt.Errorf("Requires repository name argument")
-	}
 	debug := os.Getenv("DEBUG") != ""
 	g, err := gitstrap.New(c.Context, token, debug)
 	if err != nil {
 		return err
 	}
-	stream, errs := g.GetRepoHooks(c.String("owner"), name)
+	stream, errs := g.GetHooks(c.String("owner"), name)
+	enc := yaml.NewEncoder(os.Stdout)
+	for {
+		select {
+		case h, ok := <-stream:
+			if !ok {
+				return nil
+			}
+			if err := enc.Encode(h); err != nil {
+				return err
+			}
+		case err, ok := <-errs:
+			if ok {
+				return err
+			}
+		}
+	}
+}
+
+func cmdGetTeams(ctx *cli.Context) error {
+	token, err := resolveToken(ctx)
+	if err != nil {
+		return err
+	}
+	debug := os.Getenv("DEBUG") != ""
+	g, err := gitstrap.New(ctx.Context, token, debug)
+	if err != nil {
+		return err
+	}
+	stream, errs := g.GetTeams(ctx.String("org"))
 	enc := yaml.NewEncoder(os.Stdout)
 	for {
 		select {
