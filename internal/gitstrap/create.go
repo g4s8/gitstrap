@@ -47,7 +47,8 @@ func (g *Gitstrap) createRepo(m *spec.Model) error {
 	}
 	grepo.Name = &meta.Name
 	grepo.FullName = &fn
-	r, _, err := g.gh.Repositories.Create(ctx, owner, grepo)
+	org := g.resolveOrg(m)
+	r, _, err := g.gh.Repositories.Create(ctx, org, grepo)
 	if err != nil {
 		return err
 	}
