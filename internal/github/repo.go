@@ -8,11 +8,11 @@ import (
 
 func RepoExist(cli *gh.Client, ctx context.Context, owner, name string) (bool, error) {
 	_, rsp, err := cli.Repositories.Get(ctx, owner, name)
-	if rsp.StatusCode == 404 {
-		return false, nil
-	}
 	if err != nil {
 		return false, err
+	}
+	if rsp.StatusCode == 404 {
+		return false, nil
 	}
 	return true, nil
 }
