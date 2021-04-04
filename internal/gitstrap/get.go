@@ -3,6 +3,7 @@ package gitstrap
 import (
 	"github.com/g4s8/gitstrap/internal/spec"
 	"github.com/google/go-github/v33/github"
+	"strconv"
 )
 
 // GetRepo repository resource
@@ -52,11 +53,10 @@ func (g *Gitstrap) GetOrg(name string) (*spec.Model, error) {
 	return model, nil
 }
 
-const (
-	hooksPageSize = 10
-)
-
-func (g *Gitstrap) GetRepoHooks(owner, name string) (<-chan *spec.Model, <-chan error) {
+func (g *Gitstrap) GetHooks(owner, name string) (<-chan *spec.Model, <-chan error) {
+	const (
+		hooksPageSize = 10
+	)
 	ctx, cancel := g.newContext()
 	out := make(chan *spec.Model, hooksPageSize)
 	errs := make(chan error)
@@ -70,7 +70,16 @@ func (g *Gitstrap) GetRepoHooks(owner, name string) (<-chan *spec.Model, <-chan 
 
 		opts := &github.ListOptions{PerPage: hooksPageSize}
 		for {
-			ghooks, rsp, err := g.gh.Repositories.ListHooks(ctx, owner, name, opts)
+			var (
+				ghooks []*github.Hook
+				rsp    *github.Response
+				err    error
+			)
+			if name != "" {
+				ghooks, rsp, err = g.gh.Repositories.ListHooks(ctx, owner, name, opts)
+			} else {
+				ghooks, rsp, err = g.gh.Organizations.ListHooks(ctx, owner, opts)
+			}
 			if err != nil {
 				errs <- err
 				return
@@ -83,7 +92,11 @@ func (g *Gitstrap) GetRepoHooks(owner, name string) (<-chan *spec.Model, <-chan 
 				s.Metadata.Owner = owner
 				s.Metadata.ID = gh.ID
 				hook := new(spec.Hook)
-				hook.Selector.Repository = name
+				if name != "" {
+					hook.Selector.Repository = name
+				} else {
+					hook.Selector.Organization = owner
+				}
 				if err := hook.FromGithub(gh); err != nil {
 					errs <- err
 					return
@@ -99,4 +112,52 @@ func (g *Gitstrap) GetRepoHooks(owner, name string) (<-chan *spec.Model, <-chan 
 
 	}()
 	return out, errs
+}
+
+// GetTeams fetches organization teams definitions into spec channel
+func (g *Gitstrap) GetTeams(org string) (<-chan *spec.Model, <-chan error) {
+	const (
+		perPage = 10
+	)
+	res := make(chan *spec.Model, perPage)
+	errs := make(chan error)
+	ctx, cancel := g.newContext()
+	go func() {
+		defer close(res)
+		defer close(errs)
+		defer cancel()
+		opts := &github.ListOptions{PerPage: perPage}
+		for {
+			batch, rsp, err := g.gh.Teams.ListTeams(ctx, org, opts)
+			if err != nil {
+				errs <- err
+				return
+			}
+			for _, next := range batch {
+				team := new(spec.Team)
+				if err := team.FromGithub(next); err != nil {
+					errs <- err
+					return
+				}
+				model, err := spec.NewModel(spec.KindTeam)
+				if err != nil {
+					panic(err)
+				}
+				model.Metadata.ID = next.ID
+				model.Metadata.Owner = org
+				if next.Parent != nil {
+					model.Metadata.Annotations["team/parent.id"] = strconv.FormatInt(next.Parent.GetID(), 10)
+					model.Metadata.Annotations["team/parent.slug"] = next.Parent.GetSlug()
+				}
+				model.Spec = team
+				res <- model
+			}
+			if opts.Page < rsp.LastPage {
+				opts.Page = rsp.NextPage
+			} else {
+				break
+			}
+		}
+	}()
+	return res, errs
 }
