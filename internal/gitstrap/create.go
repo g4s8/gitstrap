@@ -23,6 +23,8 @@ func (g *Gitstrap) Create(m *spec.Model) error {
 		return g.createReadme(m)
 	case spec.KindHook:
 		return g.createHook(m)
+	case spec.KindTeam:
+		return g.createTeam(m)
 	default:
 		return &errUnsupportModelKind{m.Kind}
 	}
@@ -150,5 +152,32 @@ func (g *Gitstrap) createHook(m *spec.Model) error {
 		return err
 	}
 	m.Spec = hook
+	return nil
+}
+
+func (g *Gitstrap) createTeam(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
+	owner, err := g.getTeamOwner(m)
+	if err != nil {
+		return err
+	}
+	team := new(spec.Team)
+	if err := m.GetSpec(team); err != nil {
+		return err
+	}
+	gteam := new(github.NewTeam)
+	if err := team.ToGithub(gteam); err != nil {
+		return err
+	}
+	t, _, err := g.gh.Teams.CreateTeam(ctx, owner, *gteam)
+	if err != nil {
+		return err
+	}
+	m.Metadata.FromGithubTeam(t)
+	if err := team.FromGithub(t); err != nil {
+		return err
+	}
+	m.Spec = team
 	return nil
 }

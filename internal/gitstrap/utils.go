@@ -1,6 +1,10 @@
 package gitstrap
 
-import "github.com/g4s8/gitstrap/internal/spec"
+import (
+	"fmt"
+
+	"github.com/g4s8/gitstrap/internal/spec"
+)
 
 func (g *Gitstrap) getOwner(m *spec.Model) string {
 	owner := m.Metadata.Owner
@@ -19,4 +23,11 @@ func (g *Gitstrap) resolveOrg(m *spec.Model) string {
 		return ""
 	}
 	return m.Metadata.Owner
+}
+
+func (g *Gitstrap) getTeamOwner(m *spec.Model) (string, error) {
+	if m.Metadata.Owner == "" {
+		return "", fmt.Errorf("Team owner is not specified")
+	}
+	return m.Metadata.Owner, nil
 }

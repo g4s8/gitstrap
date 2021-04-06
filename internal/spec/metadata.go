@@ -2,8 +2,9 @@ package spec
 
 import (
 	"fmt"
-	"github.com/google/go-github/v33/github"
 	"strings"
+
+	"github.com/google/go-github/v33/github"
 )
 
 // Metadata for spec
@@ -22,6 +23,11 @@ func (m *Metadata) FromGithubRepo(r *github.Repository) {
 func (m *Metadata) FromGithubOrg(o *github.Organization) {
 	m.ID = o.ID
 	m.Name = o.GetName()
+}
+
+func (m *Metadata) FromGithubTeam(t *github.Team) {
+	m.ID = t.ID
+	m.Owner = *t.Organization.Login
 }
 
 func (m *Metadata) Info() string {
