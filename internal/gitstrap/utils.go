@@ -25,9 +25,18 @@ func (g *Gitstrap) resolveOrg(m *spec.Model) string {
 	return m.Metadata.Owner
 }
 
-func (g *Gitstrap) getTeamOwner(m *spec.Model) (string, error) {
-	if m.Metadata.Owner == "" {
-		return "", fmt.Errorf("Team owner is not specified")
+type errNotSpecified struct {
+	field string
+}
+
+func (e *errNotSpecified) Error() string {
+	return fmt.Sprintf("%v is not specified", e.field)
+}
+
+func getSpecifiedOwner(m *spec.Model) (string, error) {
+	owner := m.Metadata.Owner
+	if owner == "" {
+		return "", &errNotSpecified{"Owner"}
 	}
-	return m.Metadata.Owner, nil
+	return owner, nil
 }

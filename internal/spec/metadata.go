@@ -27,6 +27,7 @@ func (m *Metadata) FromGithubOrg(o *github.Organization) {
 
 func (m *Metadata) FromGithubTeam(t *github.Team) {
 	m.ID = t.ID
+	m.Name = *t.Slug
 	m.Owner = *t.Organization.Login
 }
 

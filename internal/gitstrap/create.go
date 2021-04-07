@@ -158,7 +158,7 @@ func (g *Gitstrap) createHook(m *spec.Model) error {
 func (g *Gitstrap) createTeam(m *spec.Model) error {
 	ctx, cancel := g.newContext()
 	defer cancel()
-	owner, err := g.getTeamOwner(m)
+	owner, err := getSpecifiedOwner(m)
 	if err != nil {
 		return err
 	}
