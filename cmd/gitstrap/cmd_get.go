@@ -53,6 +53,18 @@ var getCommand = &cli.Command{
 				},
 			},
 		},
+		{
+			Name:   "protection",
+			Usage:  "Get repository branch protection rules",
+			Action: cmdGetProtections,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "owner",
+					Usage:    "Repository name",
+					Required: true,
+				},
+			},
+		},
 	},
 }
 
@@ -156,4 +168,26 @@ func cmdGetTeams(ctx *cli.Context) error {
 			}
 		}
 	}
+}
+
+func cmdGetProtections(ctx *cli.Context) error {
+	token, err := resolveToken(ctx)
+	if err != nil {
+		return err
+	}
+	debug := os.Getenv("DEBUG") != ""
+	g, err := gitstrap.New(ctx.Context, token, debug)
+	if err != nil {
+		return err
+	}
+	repo := ctx.Args().First()
+	name := ctx.Args().Get(1)
+	if name == "" || repo == "" {
+		return fmt.Errorf("Requires repo and branch name argumentas")
+	}
+	s, err := g.GetProtection(ctx.String("owner"), repo, name)
+	if err != nil {
+		return err
+	}
+	return yaml.NewEncoder(os.Stdout).Encode(s)
 }

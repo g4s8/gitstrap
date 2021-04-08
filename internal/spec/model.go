@@ -26,7 +26,7 @@ const (
 type Kind string
 
 func (k Kind) validate() error {
-	for _, v := range [...]Kind{KindRepo, KindReadme, KindOrg, KindHook, KindTeam} {
+	for _, v := range [...]Kind{KindRepo, KindReadme, KindOrg, KindHook, KindTeam, KindProtection} {
 		if k == v {
 			return nil
 		}
@@ -52,7 +52,10 @@ const (
 	KindOrg = Kind("Organization")
 	// KindHook - repository webhook
 	KindHook = Kind("WebHook")
+	// KindTeam - organization team
 	KindTeam = Kind("Team")
+	// KindProtection - repository branch protection rule
+	KindProtection = Kind("Protection")
 )
 
 // NewModel with kind
@@ -140,6 +143,11 @@ func (m *Model) GetSpec(out interface{}) (re error) {
 		m.Kind.Require(KindTeam)
 		t, ok = m.Spec.(*Team)
 		*s = *t
+	case *Protection:
+		m.Kind.Require(KindProtection)
+		var t *Protection
+		t, ok = m.Spec.(*Protection)
+		*s = *t
 	default:
 		return &errInvalidSpecType{s}
 	}
@@ -180,6 +188,8 @@ func (m *Model) UnmarshalYAML(value *yaml.Node) error {
 		m.Spec = new(Hook)
 	case KindTeam:
 		m.Spec = new(Team)
+	case KindProtection:
+		m.Spec = new(Protection)
 	default:
 		return &errUnknownKind{m.Kind}
 	}

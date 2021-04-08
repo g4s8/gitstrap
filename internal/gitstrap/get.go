@@ -1,9 +1,11 @@
 package gitstrap
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/g4s8/gitstrap/internal/spec"
 	"github.com/google/go-github/v33/github"
-	"strconv"
 )
 
 // GetRepo repository resource
@@ -160,4 +162,29 @@ func (g *Gitstrap) GetTeams(org string) (<-chan *spec.Model, <-chan error) {
 		}
 	}()
 	return res, errs
+}
+
+func (g *Gitstrap) GetProtection(owner, repo, branch string) (*spec.Model, error) {
+	if owner == "" {
+		owner = g.me
+	}
+	ctx, cancel := g.newContext()
+	defer cancel()
+	res, _, err := g.gh.Repositories.GetBranchProtection(ctx, owner, repo, branch)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch protection rule: %w", err)
+	}
+	bp := new(spec.Protection)
+	if err := bp.FromGithub(res); err != nil {
+		return nil, fmt.Errorf("failed to parse protection spec: %w", err)
+	}
+	m, err := spec.NewModel(spec.KindProtection)
+	if err != nil {
+		panic(err)
+	}
+	m.Metadata.Name = branch
+	m.Metadata.Repo = repo
+	m.Metadata.Owner = owner
+	m.Spec = bp
+	return m, nil
 }
