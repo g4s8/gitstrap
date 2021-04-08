@@ -20,3 +20,10 @@ func (t *Team) FromGithub(g *github.Team) error {
 	t.Privacy = g.GetPrivacy()
 	return nil
 }
+
+func (t *Team) ToGithub(g *github.NewTeam) error {
+	g.Name = t.Name
+	g.Description = &t.Description
+	g.Privacy = &t.Privacy
+	return nil
+}

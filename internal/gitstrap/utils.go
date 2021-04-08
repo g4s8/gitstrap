@@ -1,6 +1,10 @@
 package gitstrap
 
-import "github.com/g4s8/gitstrap/internal/spec"
+import (
+	"fmt"
+
+	"github.com/g4s8/gitstrap/internal/spec"
+)
 
 func (g *Gitstrap) getOwner(m *spec.Model) string {
 	owner := m.Metadata.Owner
@@ -19,4 +23,20 @@ func (g *Gitstrap) resolveOrg(m *spec.Model) string {
 		return ""
 	}
 	return m.Metadata.Owner
+}
+
+type errNotSpecified struct {
+	field string
+}
+
+func (e *errNotSpecified) Error() string {
+	return fmt.Sprintf("%v is not specified", e.field)
+}
+
+func getSpecifiedOwner(m *spec.Model) (string, error) {
+	owner := m.Metadata.Owner
+	if owner == "" {
+		return "", &errNotSpecified{"Owner"}
+	}
+	return owner, nil
 }
