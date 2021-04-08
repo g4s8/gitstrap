@@ -38,32 +38,6 @@ type Repo struct {
 	Features            []string `yaml:"features"`
 }
 
-// Collaborator on repo
-type Collaborator struct {
-	Name        string   `yaml:"name"`
-	Permissions []string `yaml:"permissions"`
-}
-
-func (c *Collaborator) fromUser(u *github.User) {
-	c.Name = u.GetLogin()
-	for perm, enabled := range u.GetPermissions() {
-		if enabled {
-			c.Permissions = append(c.Permissions, perm)
-		}
-	}
-}
-
-// Collaborators on repo
-type Collaborators []*Collaborator
-
-func (cls *Collaborators) FromUsers(us []*github.User) {
-	for _, u := range us {
-		c := new(Collaborator)
-		c.fromUser(u)
-		*cls = append(*cls, c)
-	}
-}
-
 func (spec *Repo) FromGithub(repo *github.Repository) {
 	spec.Description = repo.Description
 	spec.Homepage = repo.Homepage

@@ -9,6 +9,7 @@ import (
 // Metadata for spec
 type Metadata struct {
 	Name        string            `yaml:"name,omitempty"`
+	Repo        string            `yaml:"repo,omitempty"`
 	Owner       string            `yaml:"owner,omitempty"`
 	ID          *int64            `yaml:"id,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
