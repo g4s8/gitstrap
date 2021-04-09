@@ -8,5 +8,5 @@ import (
 
 func RepoExist(cli *gh.Client, ctx context.Context, owner, name string) (bool, error) {
 	_, _, err := cli.Repositories.Get(ctx, owner, name)
-	return parseBoolResponse(err)
+	return resolveResponseByErr(err)
 }
