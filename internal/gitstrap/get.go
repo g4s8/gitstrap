@@ -147,6 +147,7 @@ func (g *Gitstrap) GetTeams(org string) (<-chan *spec.Model, <-chan error) {
 				}
 				model.Metadata.ID = next.ID
 				model.Metadata.Owner = org
+				model.Metadata.Name = next.GetSlug()
 				if next.Parent != nil {
 					model.Metadata.Annotations["team/parent.id"] = strconv.FormatInt(next.Parent.GetID(), 10)
 					model.Metadata.Annotations["team/parent.slug"] = next.Parent.GetSlug()

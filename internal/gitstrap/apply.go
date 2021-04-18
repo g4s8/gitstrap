@@ -18,6 +18,8 @@ func (g *Gitstrap) Apply(m *spec.Model) error {
 		return g.applyHook(m)
 	case spec.KindOrg:
 		return g.applyOrg(m)
+	case spec.KindTeam:
+		return g.applyTeam(m)
 	default:
 		return fmt.Errorf("Unsupported yet %s", m.Kind)
 	}
@@ -120,5 +122,89 @@ func (g *Gitstrap) applyOrg(m *spec.Model) error {
 	o.FromGithub(org)
 	m.Spec = o
 	m.Metadata.FromGithubOrg(org)
+	return nil
+}
+
+func (g *Gitstrap) applyTeam(m *spec.Model) error {
+	_, err := getSpecifiedOwner(m)
+	if err != nil {
+		return err
+	}
+	_, err = getSpecifiedName(m)
+	if err == nil {
+		return g.editTeamBySlug(m)
+	}
+	_, err = getSpecifiedID(m)
+	if err == nil {
+		return g.editTeamByID(m)
+	}
+	return g.createTeam(m)
+}
+
+func (g *Gitstrap) editTeamByID(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
+	ID := m.Metadata.ID
+	owner := m.Metadata.Owner
+	ownerID, err := gh.GetOrgIdByName(g.gh, ctx, owner)
+	if err != nil {
+		return err
+	}
+	exist, err := gh.TeamExistByID(g.gh, ctx, ownerID, *ID)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return g.createTeam(m)
+	}
+	t := new(spec.Team)
+	if err := m.GetSpec(t); err != nil {
+		return err
+	}
+	gTeam := new(github.NewTeam)
+	if err := t.ToGithub(gTeam); err != nil {
+		return err
+	}
+	gT, _, err := g.gh.Teams.EditTeamByID(ctx, ownerID, *ID, *gTeam, false)
+	if err != nil {
+		return err
+	}
+	if err = t.FromGithub(gT); err != nil {
+		return err
+	}
+	m.Spec = t
+	m.Metadata.FromGithubTeam(gT)
+	return nil
+}
+
+func (g *Gitstrap) editTeamBySlug(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
+	owner := m.Metadata.Owner
+	slug := m.Metadata.Name
+	exist, err := gh.TeamExistBySlug(g.gh, ctx, owner, slug)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return g.createTeam(m)
+	}
+	t := new(spec.Team)
+	if err := m.GetSpec(t); err != nil {
+		return err
+	}
+	gTeam := new(github.NewTeam)
+	if err := t.ToGithub(gTeam); err != nil {
+		return err
+	}
+	gT, _, err := g.gh.Teams.EditTeamBySlug(ctx, owner, slug, *gTeam, false)
+	if err != nil {
+		return err
+	}
+	if err = t.FromGithub(gT); err != nil {
+		return err
+	}
+	m.Spec = t
+	m.Metadata.FromGithubTeam(gT)
 	return nil
 }
