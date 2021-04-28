@@ -126,16 +126,13 @@ func (g *Gitstrap) applyOrg(m *spec.Model) error {
 }
 
 func (g *Gitstrap) applyTeam(m *spec.Model) error {
-	_, err := getSpecifiedOwner(m)
-	if err != nil {
-		return err
+	if m.Metadata.Owner == "" {
+		return &errNotSpecified{"Owner"}
 	}
-	_, err = getSpecifiedName(m)
-	if err == nil {
+	if m.Metadata.Name != "" {
 		return g.editTeamBySlug(m)
 	}
-	_, err = getSpecifiedID(m)
-	if err == nil {
+	if m.Metadata.ID != nil {
 		return g.editTeamByID(m)
 	}
 	return g.createTeam(m)
