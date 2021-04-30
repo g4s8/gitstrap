@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	gh "github.com/g4s8/gitstrap/internal/github"
 	"github.com/g4s8/gitstrap/internal/spec"
 	"github.com/google/go-github/v33/github"
 )
@@ -16,6 +17,8 @@ func (g *Gitstrap) Delete(m *spec.Model) error {
 		return g.deleteReadme(m)
 	case spec.KindHook:
 		return g.deleteHook(m)
+	case spec.KindTeam:
+		return g.deleteTeam(m)
 	default:
 		return &errUnsupportModelKind{m.Kind}
 	}
@@ -107,4 +110,38 @@ func (g *Gitstrap) deleteHook(m *spec.Model) error {
 	} else {
 		return errHookSelectorEmpty
 	}
+}
+
+func (g *Gitstrap) deleteTeam(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
+	owner, err := getSpecifiedOwner(m)
+	if err != nil {
+		return err
+	}
+	team := new(spec.Team)
+	if err := m.GetSpec(team); err != nil {
+		return nil
+	}
+	slug, err := getSpecifiedName(m)
+	if err != nil {
+		goto deleteByID
+	}
+	if _, err := g.gh.Teams.DeleteTeamBySlug(ctx, owner, slug); err != nil {
+		return err
+	}
+	return nil
+deleteByID:
+	ID, err := getSpecifiedID(m)
+	if err != nil {
+		return &errNotSpecified{"Name and ID"}
+	}
+	ownerID, err := gh.GetOrgIdByName(g.gh, ctx, owner)
+	if err != nil {
+		return err
+	}
+	if _, err := g.gh.Teams.DeleteTeamByID(ctx, ownerID, *ID); err != nil {
+		return err
+	}
+	return nil
 }

@@ -38,7 +38,7 @@ func (m *Metadata) Info() string {
 		fmt.Fprintf(sb, "ID=%d ", *m.ID)
 	}
 	if m.Owner != "" {
-		fmt.Fprintf(sb, "%s/%s", m.Owner, m.Name)
+		fmt.Fprintf(sb, "%s/%s ", m.Owner, m.Name)
 	}
 	if m.Name != "" {
 		fmt.Fprintf(sb, "%s", m.Name)

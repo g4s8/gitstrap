@@ -40,3 +40,19 @@ func getSpecifiedOwner(m *spec.Model) (string, error) {
 	}
 	return owner, nil
 }
+
+func getSpecifiedName(m *spec.Model) (string, error) {
+	name := m.Metadata.Name
+	if name == "" {
+		return "", &errNotSpecified{"Name"}
+	}
+	return name, nil
+}
+
+func getSpecifiedID(m *spec.Model) (*int64, error) {
+	ID := m.Metadata.ID
+	if ID == nil {
+		return nil, &errNotSpecified{"ID"}
+	}
+	return ID, nil
+}
