@@ -16,6 +16,7 @@ Version should be `v2`. Kind is a string which describes the specification kind,
  - [Organization](#Organization)
  - [WebHook](#WebHook)
  - [Readme](#Readme)
+ - [Team](#Team)
 
 A `spec` may have `selector` key to attach to the correct resource.
 
@@ -178,3 +179,34 @@ spec:
       - heading: How to configure and start Artipie Conan endpoint
         body: TODO
 ```
+
+## Team
+
+Describes GitHub organization's team, it has:
+ - `name` (string, required) - team name
+ - `description` (string, optional) - team description
+ - `privacy` (string, default: secret) - team privacy
+ - `permission` (string, readonly) - team permission. Permission is deprecated when creating or editing a team in an org using the new GitHub permission model.
+
+Metadata:
+ - `owner` (string, required) - organization to which the team belongs.
+ - `name` (string, required on update) - team slug. It must be specified to update existing team, if not specified, gitstrap will try to update by id.
+ - `id` (number, required on update) - it must be specified to update existing team if name is not specified. If name and id are not specified a new team will be created. It could be fetched with `get` command.
+
+Example:
+```yaml
+version: v2
+kind: Team
+metadata:
+    name: example-team
+    owner: artipie
+    id: 123456
+spec:
+    name: Example team
+    description: Gitstrap example team
+    permission: pull
+    privacy: closed
+```
+
+
+
