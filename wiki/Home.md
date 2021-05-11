@@ -1,3 +1,5 @@
+TEST
+
 The `gitstrap` project aims to automate routine operations with GitHub such as managing repositories, organizations, teams, web-hooks and other resources. Each resource is represented as a `yaml` specification document that could be fetched from an existing resource or created from scratch. Each document can be updated and the specification resource configuration can be applied using CLI `gitstrap` tool.
 
 The full specification format can be found here: [/specifications](https://github.com/g4s8/gitstrap/wiki/Specifications)
