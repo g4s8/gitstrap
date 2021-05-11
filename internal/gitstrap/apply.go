@@ -20,6 +20,8 @@ func (g *Gitstrap) Apply(m *spec.Model) error {
 		return g.applyOrg(m)
 	case spec.KindTeam:
 		return g.applyTeam(m)
+	case spec.KindProtection:
+		return g.applyProtection(m)
 	default:
 		return fmt.Errorf("Unsupported yet %s", m.Kind)
 	}
@@ -203,5 +205,39 @@ func (g *Gitstrap) editTeamBySlug(m *spec.Model) error {
 	}
 	m.Spec = t
 	m.Metadata.FromGithubTeam(gT)
+	return nil
+}
+
+func (g *Gitstrap) applyProtection(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
+	owner := g.getOwner(m)
+	name, err := getSpecifiedName(m)
+	if err != nil {
+		return err
+	}
+	repo, err := getSpecifiedRepo(m)
+	if err != nil {
+		return err
+	}
+	bp := new(spec.Protection)
+	if err := m.GetSpec(bp); err != nil {
+		return err
+	}
+	gPreq := new(github.ProtectionRequest)
+	if err := bp.ToGithub(gPreq); err != nil {
+		return err
+	}
+	gProt, _, err := g.gh.Repositories.UpdateBranchProtection(ctx, owner, repo, name, gPreq)
+	if err != nil {
+		return err
+	}
+	if err = bp.FromGithub(gProt); err != nil {
+		return err
+	}
+	m.Spec = bp
+	m.Metadata.Name = name
+	m.Metadata.Owner = owner
+	m.Metadata.Repo = repo
 	return nil
 }

@@ -19,6 +19,8 @@ func (g *Gitstrap) Delete(m *spec.Model) error {
 		return g.deleteHook(m)
 	case spec.KindTeam:
 		return g.deleteTeam(m)
+	case spec.KindProtection:
+		return g.deleteProtection(m)
 	default:
 		return &errUnsupportModelKind{m.Kind}
 	}
@@ -141,6 +143,28 @@ deleteByID:
 		return err
 	}
 	if _, err := g.gh.Teams.DeleteTeamByID(ctx, ownerID, *ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g *Gitstrap) deleteProtection(m *spec.Model) error {
+	ctx, cancel := g.newContext()
+	defer cancel()
+	owner, err := getSpecifiedOwner(m)
+	if err != nil {
+		return err
+	}
+	repo, err := getSpecifiedRepo(m)
+	if err != nil {
+		return err
+	}
+	name, err := getSpecifiedName(m)
+	if err != nil {
+		return err
+	}
+	_, err = g.gh.Repositories.RemoveBranchProtection(ctx, owner, repo, name)
+	if err != nil {
 		return err
 	}
 	return nil

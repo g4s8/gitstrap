@@ -56,3 +56,11 @@ func getSpecifiedID(m *spec.Model) (*int64, error) {
 	}
 	return ID, nil
 }
+
+func getSpecifiedRepo(m *spec.Model) (string, error) {
+	repo := m.Metadata.Repo
+	if repo == "" {
+		return "", &errNotSpecified{"Repo"}
+	}
+	return repo, nil
+}
