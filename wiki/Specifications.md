@@ -207,6 +207,3 @@ spec:
     permission: pull
     privacy: closed
 ```
-
-
-

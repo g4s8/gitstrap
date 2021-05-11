@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Update wiki
     steps:
-    - uses: OrlovM/Wiki-Action@master
+    - uses: OrlovM/Wiki-Action@v1
       with:
         path: 'wiki'
         token: ${{ secrets.GITHUB_TOKEN }}
