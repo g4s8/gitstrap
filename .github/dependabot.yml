@@ -11,6 +11,6 @@ updates:
     assignees:
       - "g4s8"
     reviewers:
-      _ "g4s8"
+      - "g4s8"
     schedule:
       interval: "daily"
