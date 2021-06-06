@@ -214,11 +214,11 @@ func (g *Gitstrap) applyProtection(m *spec.Model) error {
 	owner := g.getOwner(m)
 	name, err := getSpecifiedName(m)
 	if err != nil {
-		return err
+		return fmt.Errorf("protection name is required: %w", err)
 	}
 	repo, err := getSpecifiedRepo(m)
 	if err != nil {
-		return err
+		return fmt.Errorf("protection repo is required: %w", err)
 	}
 	bp := new(spec.Protection)
 	if err := m.GetSpec(bp); err != nil {
@@ -230,7 +230,7 @@ func (g *Gitstrap) applyProtection(m *spec.Model) error {
 	}
 	gProt, _, err := g.gh.Repositories.UpdateBranchProtection(ctx, owner, repo, name, gPreq)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to apply protection %v/%v: %w", repo, name, err)
 	}
 	if err = bp.FromGithub(gProt); err != nil {
 		return err

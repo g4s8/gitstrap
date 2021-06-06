@@ -153,19 +153,19 @@ func (g *Gitstrap) deleteProtection(m *spec.Model) error {
 	defer cancel()
 	owner, err := getSpecifiedOwner(m)
 	if err != nil {
-		return err
+		return fmt.Errorf("protection owner is required: %w", err)
 	}
 	repo, err := getSpecifiedRepo(m)
 	if err != nil {
-		return err
+		return fmt.Errorf("protection repo is required: %w", err)
 	}
 	name, err := getSpecifiedName(m)
 	if err != nil {
-		return err
+		return fmt.Errorf("protection name is required: %w", err)
 	}
 	_, err = g.gh.Repositories.RemoveBranchProtection(ctx, owner, repo, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete protection %v/%v: %w", repo, name, err)
 	}
 	return nil
 }

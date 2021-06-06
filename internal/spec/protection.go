@@ -6,23 +6,26 @@ import (
 
 // Protection rule of repositry branch
 type Protection struct {
-	// Required status checks for merge
+	// Checks represents required status checks for merge
 	Checks []string `yaml:"checks,omitempty"`
 	// Strict update with target branch is requried
 	Strict bool `yaml:"strictUpdate,omitempty"`
-	// PullRequestReviewsEnforcement
+	// Review represents pull request review enforcement
 	Review struct {
-		// The pull request reviews enforcement of a protected branch.
+		// Require pull request reviews enforcement of a protected branch.
 		Require bool `yaml:"require,omitempty"`
-		// Users who can dismiss review
-		Users []string `yaml:"users,omitempty"`
-		// Teams who can dismiss review
-		Teams []string `yaml:"teams,omitempty"`
-		// Automatically dismiss approving reviews when someone pushes a new commit.
-		Stale bool `yaml:"stale,omitempty"`
-		// Blocks merging pull requests until code owners review them.
+		// Dismiss pull request review
+		Dismiss struct {
+			// Users who can dismiss review
+			Users []string `yaml:"users,omitempty"`
+			// Teams who can dismiss review
+			Teams []string `yaml:"teams,omitempty"`
+			// Automatically dismiss approving reviews when someone pushes a new commit.
+			Stale bool `yaml:"stale,omitempty"`
+		} `yaml:"dismiss,omitempty"`
+		// RequireOwner blocks merging pull requests until code owners review them.
 		RequireOwner bool `yaml:"requireOwner,omitempty"`
-		// The number of reviewers required to approve pull requests.
+		// Count is the number of reviewers required to approve pull requests.
 		Count int `yaml:"count,omitempty"`
 	} `yaml:"review,omitempty"`
 	// EnforceAdmins the same rules
@@ -56,17 +59,17 @@ func (bp *Protection) FromGithub(g *github.Protection) error {
 	}
 	if p := g.RequiredPullRequestReviews; p != nil {
 		bp.Review.Require = true
-		bp.Review.Stale = p.DismissStaleReviews
+		bp.Review.Dismiss.Stale = p.DismissStaleReviews
 		bp.Review.RequireOwner = p.RequireCodeOwnerReviews
 		bp.Review.Count = p.RequiredApprovingReviewCount
 		if r := p.DismissalRestrictions; r != nil {
-			bp.Review.Users = make([]string, len(r.Users))
+			bp.Review.Dismiss.Users = make([]string, len(r.Users))
 			for i, u := range r.Users {
-				bp.Review.Users[i] = u.GetLogin()
+				bp.Review.Dismiss.Users[i] = u.GetLogin()
 			}
-			bp.Review.Teams = make([]string, len(r.Teams))
+			bp.Review.Dismiss.Teams = make([]string, len(r.Teams))
 			for i, t := range r.Teams {
-				bp.Review.Teams[i] = t.GetSlug()
+				bp.Review.Dismiss.Teams[i] = t.GetSlug()
 			}
 		}
 	}
@@ -127,9 +130,9 @@ func (bp *Protection) requiredChecksToGithub() *github.RequiredStatusChecks {
 func (bp *Protection) reviewToGithub() *github.PullRequestReviewsEnforcementRequest {
 	e := new(github.PullRequestReviewsEnforcementRequest)
 	e.DismissalRestrictionsRequest = new(github.DismissalRestrictionsRequest)
-	e.DismissalRestrictionsRequest.Teams = getEmptyIfNil(bp.Review.Teams)
-	e.DismissalRestrictionsRequest.Users = getEmptyIfNil(bp.Review.Users)
-	e.DismissStaleReviews = bp.Review.Stale
+	e.DismissalRestrictionsRequest.Teams = getEmptyIfNil(bp.Review.Dismiss.Teams)
+	e.DismissalRestrictionsRequest.Users = getEmptyIfNil(bp.Review.Dismiss.Users)
+	e.DismissStaleReviews = bp.Review.Dismiss.Stale
 	e.RequireCodeOwnerReviews = bp.Review.RequireOwner
 	e.RequiredApprovingReviewCount = bp.Review.Count
 	return e

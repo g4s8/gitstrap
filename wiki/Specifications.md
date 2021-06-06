@@ -219,9 +219,10 @@ Describes GitHub branch protection, it has:
  - `strictUpdate` (bool, optional) - require branches to be up to date before merging.
  - `review` - represents the pull request reviews enforcement.
    - `require` (bool, optional) - set `true` to enforce pull request review.
-   - `users` (list of strings, optional) - the list of user's logins with dismissal access. Only available for organization-owner repositories.
-   - `teams` (list of strings, optional) - the list of team's slugs with dismissal access. Only available for organization-owner repositories.
-   - `stale` (bool, optional) - specifies if approved reviews are dismissed automatically, when a new commit is pushed.
+   - `dismiss` Dismiss pull request review 
+     - `users` (list of strings, optional) - the list of user's logins with dismissal access. Only available for organization-owner repositories.
+     - `teams` (list of strings, optional) - the list of team's slugs with dismissal access. Only available for organization-owner repositories.
+     - `stale` (bool, optional) - specifies if approved reviews are dismissed automatically, when a new commit is pushed.
    - `requireOwner` (bool, optional)- blocks merging pull requests until code owners review them.
    - `count` (int, required) - the number of reviewers required to approve pull requests. Required if review `require` set to `true`
  - `enforceAdmins` (bool, optional) - enforce all configured restrictions for administrators.
@@ -255,12 +256,13 @@ spec:
     strictUpdate: true
     review:
         require: true
-        users:
-            - g4s8
-            - OrlovM
-        teams:
-            - example-team
-        stale: true
+        dismiss:
+            users:
+                - g4s8
+                - OrlovM
+            teams:
+                - example-team
+            stale: true
         requireOwner: true
         count: 1
     enforceAdmins: true
