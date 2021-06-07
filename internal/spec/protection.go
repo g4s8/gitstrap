@@ -59,7 +59,9 @@ func (bp *Protection) FromGithub(g *github.Protection) error {
 	}
 	if p := g.RequiredPullRequestReviews; p != nil {
 		bp.Review.Require = true
-		bp.Review.Dismiss.Stale = p.DismissStaleReviews
+		if p.DismissStaleReviews {
+			bp.Review.Dismiss.Stale = true
+		}
 		bp.Review.RequireOwner = p.RequireCodeOwnerReviews
 		bp.Review.Count = p.RequiredApprovingReviewCount
 		if r := p.DismissalRestrictions; r != nil {
@@ -130,8 +132,10 @@ func (bp *Protection) requiredChecksToGithub() *github.RequiredStatusChecks {
 func (bp *Protection) reviewToGithub() *github.PullRequestReviewsEnforcementRequest {
 	e := new(github.PullRequestReviewsEnforcementRequest)
 	e.DismissalRestrictionsRequest = new(github.DismissalRestrictionsRequest)
-	e.DismissalRestrictionsRequest.Teams = getEmptyIfNil(bp.Review.Dismiss.Teams)
-	e.DismissalRestrictionsRequest.Users = getEmptyIfNil(bp.Review.Dismiss.Users)
+	if d := bp.Review.Dismiss; d.Teams != nil || d.Users != nil {
+		e.DismissalRestrictionsRequest.Teams = getEmptyIfNil(d.Teams)
+		e.DismissalRestrictionsRequest.Users = getEmptyIfNil(d.Users)
+	}
 	e.DismissStaleReviews = bp.Review.Dismiss.Stale
 	e.RequireCodeOwnerReviews = bp.Review.RequireOwner
 	e.RequiredApprovingReviewCount = bp.Review.Count
