@@ -207,3 +207,75 @@ spec:
     permission: pull
     privacy: closed
 ```
+
+## Protection
+
+| :memo: Notification|
+|:-------------------|
+|GitHub uses `fnmatch` syntax for applying protection rules to branches. Github API interacts with protection only for specified branch, i.e. name of protection = name of branch. Therefore if your branch protected by matching syntax e.g. `*`, you can fetch protection, but can not remove via API. Full support of protection  via match available via GitHub web interface.| 
+
+Describes GitHub branch protection, it has:
+ - `checks` (string, optional) - the list of status checks to require in order to merge into this branch
+ - `strictUpdate` (bool, optional) - require branches to be up to date before merging.
+ - `review` - represents the pull request reviews enforcement.
+   - `require` (bool, optional) - set `true` to enforce pull request review.
+   - `dismiss` - dismiss pull request review 
+     - `users` (list of strings, optional) - the list of user's logins with dismissal access. Only available for organization-owner repositories.
+     - `teams` (list of strings, optional) - the list of team's slugs with dismissal access. Only available for organization-owner repositories.
+     - `stale` (bool, optional) - specifies if approved reviews are dismissed automatically, when a new commit is pushed.
+   - `requireOwner` (bool, optional)- blocks merging pull requests until code owners review them.
+   - `count` (int, required) - the number of reviewers required to approve pull requests. Required if review `require` set to `true`
+ - `enforceAdmins` (bool, optional) - enforce all configured restrictions for administrators.
+ - `linearHistory` (bool, optional) - enforces a linear commit Git history, which prevents anyone from pushing merge commits to a branch.
+ - `forcePush` (bool, optional) - permits force pushes to the protected branch by anyone with write access to the repository. 
+ - `canDelete` (bool, optional) - allows deletion of the protected branch by anyone with write access to the repository. 
+ - `permissions` - restrict who can push to the protected branch. Only available for organization-owner repositories.
+   - `restrict` (bool, optional) - set `true` to enable restrictions. 
+   - `users` (list of strings, optional) - the list of user's logins with push access
+   - `teams` (list of strings, optional) - the list of team's slugs with push access
+   - `apps` (list od strings, optional) - the list of apps's slugs with push access 
+
+Metadata:
+ - `owner` (string, required) - repository owner
+ - `repo` (string, required) - repository name
+ - `name` (string, required) - branch name
+
+Example:
+```yaml
+version: v2
+kind: Protection
+metadata:
+    name: master
+    repo: gitstrap
+    owner: g4s8
+spec:
+    checks:
+        - build
+        - test
+        - lint
+    strictUpdate: true
+    review:
+        require: true
+        dismiss:
+            users:
+                - g4s8
+                - OrlovM
+            teams:
+                - example-team
+            stale: true
+        requireOwner: true
+        count: 1
+    enforceAdmins: true
+    linearHistory: true
+    forcePush: true
+    canDelete: true
+    permissions:
+        restrict: true
+        users:
+            - g4s8
+            - OrlovM
+        teams:
+            - example-team
+        apps:
+            - example
+```
