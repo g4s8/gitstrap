@@ -56,47 +56,50 @@ func (r *RepoInfo) forksStr() string {
 }
 
 func (r *RepoInfo) WriteTo(w io.Writer) (int64, error) {
-	n, err := fmt.Fprintf(w, "| %40s | %4s | %7s | %8s ★ | %8s ⎇ |=",
+	n, err := fmt.Fprintf(w, "| %40s | %4s | %7s | %8s ★ | %8s ⎇ |",
 		r.name, r.isFork(), r.visibility(),
 		r.starsStr(), r.forksStr())
 	return int64(n), err
 }
 
 // ListRepos lists repositories
-func (g *Gitstrap) ListRepos(filter ListFilter, owner string) (<-chan *RepoInfo, <-chan error) {
+func (g *Gitstrap) ListRepos(filter ListFilter, owner string, errs chan<- error) (<-chan *RepoInfo) {
 	if filter == nil {
 		filter = LfNop
 	}
-	res := make(chan *RepoInfo)
-	errs := make(chan error)
+	const (
+		pageSize = 10
+	)
+	res := make(chan *RepoInfo, pageSize)
 	ctx, cancel := g.newContext()
 	go func() {
 		defer close(res)
-		defer close(errs)
 		defer cancel()
-		opts := new(github.RepositoryListOptions)
-	PAGINATION:
-		list, rsp, err := g.gh.Repositories.List(ctx, owner, opts)
-		if err != nil {
-			errs <- err
-			return
+		opts := &github.RepositoryListOptions{
+			Visibility: "all",
 		}
-		for _, item := range list {
-			entry := new(RepoInfo)
-			entry.name = item.GetFullName()
-			entry.public = !item.GetPrivate()
-			entry.fork = item.GetFork()
-			entry.stars = item.GetStargazersCount()
-			entry.forks = item.GetForksCount()
-			if filter.check(entry) {
-				res <- entry
+		pag := new(pagination)
+		opts.PerPage = pageSize
+		for pag.moveNext(&opts.ListOptions) {
+			list, rsp, err := g.gh.Repositories.List(ctx, owner, opts)
+			if err != nil {
+				errs <- err
+				return
 			}
-		}
-		if opts.Page < rsp.LastPage {
-			opts.Page = rsp.NextPage
-			goto PAGINATION
+			pag.update(rsp)
+			for _, item := range list {
+				entry := new(RepoInfo)
+				entry.name = item.GetFullName()
+				entry.public = !item.GetPrivate()
+				entry.fork = item.GetFork()
+				entry.stars = item.GetStargazersCount()
+				entry.forks = item.GetForksCount()
+				if filter.check(entry) {
+					res <- entry
+				}
+			}
 		}
 
 	}()
-	return res, errs
+	return res
 }

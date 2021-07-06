@@ -71,7 +71,8 @@ func (g *Gitstrap) GetHooks(owner, name string) (<-chan *spec.Model, <-chan erro
 		defer cancel()
 
 		opts := &github.ListOptions{PerPage: hooksPageSize}
-		for {
+		pag := new(pagination)
+		for pag.moveNext(opts) {
 			var (
 				ghooks []*github.Hook
 				rsp    *github.Response
@@ -82,6 +83,7 @@ func (g *Gitstrap) GetHooks(owner, name string) (<-chan *spec.Model, <-chan erro
 			} else {
 				ghooks, rsp, err = g.gh.Organizations.ListHooks(ctx, owner, opts)
 			}
+			pag.update(rsp)
 			if err != nil {
 				errs <- err
 				return
@@ -106,10 +108,6 @@ func (g *Gitstrap) GetHooks(owner, name string) (<-chan *spec.Model, <-chan erro
 				s.Spec = hook
 				out <- s
 			}
-			if opts.Page == rsp.LastPage {
-				break
-			}
-			opts.Page = rsp.NextPage
 		}
 
 	}()
@@ -129,8 +127,10 @@ func (g *Gitstrap) GetTeams(org string) (<-chan *spec.Model, <-chan error) {
 		defer close(errs)
 		defer cancel()
 		opts := &github.ListOptions{PerPage: perPage}
-		for {
+		pag := new(pagination)
+		for pag.moveNext(opts) {
 			batch, rsp, err := g.gh.Teams.ListTeams(ctx, org, opts)
+			pag.update(rsp)
 			if err != nil {
 				errs <- err
 				return
@@ -154,11 +154,6 @@ func (g *Gitstrap) GetTeams(org string) (<-chan *spec.Model, <-chan error) {
 				}
 				model.Spec = team
 				res <- model
-			}
-			if opts.Page < rsp.LastPage {
-				opts.Page = rsp.NextPage
-			} else {
-				break
 			}
 		}
 	}()
