@@ -17,9 +17,22 @@ $(OUTPUT):
 clean:
 	rm -f $(OUTPUT)
 
+# run_tests_dir - run all tests in provided directory
+define _run_tests_dir
+  go test -v ${TEST_OPTS} "./$(1)/..."
+endef
+
 .PHONY: test
 test: $(OUTPUT)
-	go test ./internal/...
+	$(call _run_tests_dir,internal)
+
+.PHONY: test-race
+test-race: TEST_OPTS := ${TEST_OPTS} -race
+test-race: test
+
+.PHONY: bench
+bench: TEST_OPTS := ${TEST_OPTS} -bench=. -run=^$
+bench: test
 
 .PHONY: lint
 lint: $(OUTPUT)

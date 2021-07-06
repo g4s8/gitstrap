@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/g4s8/gitstrap/internal/gitstrap"
 	"github.com/urfave/cli/v2"
@@ -67,26 +68,26 @@ func cmdListRepo(c *cli.Context) error {
 	if lt := c.Int("stars-lt"); lt > 0 {
 		filter = gitstrap.LfStars(filter, gitstrap.LfStarsLt(lt))
 	}
-	lst, errs := g.ListRepos(filter, owner)
+	errs := make(chan error)
+	defer close(errs)
+	lst := g.ListRepos(filter, owner, errs)
+	cases := make([]reflect.SelectCase, 2)
+	cases[0] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(lst)}
+	cases[1] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(errs)}
 	out := os.Stdout
-	var done bool
-	for !done {
-		select {
-		case next, ok := <-lst:
-			if !ok {
-				done = true
-				break
-			}
+	for {
+		choosen, val, ok := reflect.Select(cases)
+		if !ok {
+			break
+		}
+		if choosen == 0 {
+			next := val.Interface().(*gitstrap.RepoInfo)
 			if _, err := next.WriteTo(out); err != nil {
 				return err
 			}
-			fmt.Print(out, "+\n")
-		case err, ok := <-errs:
-			if !ok {
-				done = true
-				break
-			}
-			return err
+			fmt.Fprint(out, "\n")
+		} else {
+			return val.Interface().(error)
 		}
 	}
 	return nil
