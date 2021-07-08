@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v36/github"
 )
 
 // Metadata for spec

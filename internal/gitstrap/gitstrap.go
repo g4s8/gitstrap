@@ -2,7 +2,7 @@ package gitstrap
 
 import (
 	"context"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v36/github"
 	"golang.org/x/oauth2"
 	"log"
 	"net/http"

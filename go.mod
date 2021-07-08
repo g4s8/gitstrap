@@ -3,6 +3,7 @@ module github.com/g4s8/gitstrap
 require (
 	github.com/g4s8/go-matchers v0.0.0-20201209072131-8aaefc3fcb9c
 	github.com/google/go-github/v33 v33.0.0
+	github.com/google/go-github/v36 v36.0.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/urfave/cli/v2 v2.3.0

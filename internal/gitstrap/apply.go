@@ -6,7 +6,7 @@ import (
 
 	gh "github.com/g4s8/gitstrap/internal/github"
 	"github.com/g4s8/gitstrap/internal/spec"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v36/github"
 )
 
 // Apply specification
