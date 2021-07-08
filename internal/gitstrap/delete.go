@@ -121,10 +121,6 @@ func (g *Gitstrap) deleteTeam(m *spec.Model) error {
 	if err != nil {
 		return err
 	}
-	team := new(spec.Team)
-	if err := m.GetSpec(team); err != nil {
-		return nil
-	}
 	slug, err := getSpecifiedName(m)
 	if err != nil {
 		goto deleteByID
