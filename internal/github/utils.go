@@ -3,7 +3,7 @@ package github
 import (
 	"net/http"
 
-	gh "github.com/google/go-github/v33/github"
+	gh "github.com/google/go-github/v36/github"
 )
 
 // resolveResponseByErr determines the result from a GitHub API response.

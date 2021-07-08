@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/g4s8/gitstrap/internal/spec"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v36/github"
 )
 
 // GetRepo repository resource

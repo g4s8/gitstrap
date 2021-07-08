@@ -2,7 +2,7 @@ package gitstrap
 
 import (
 	"testing"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v36/github"
 	m "github.com/g4s8/go-matchers"
 )
 
