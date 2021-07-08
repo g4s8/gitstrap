@@ -38,7 +38,15 @@ var deleteCommand = &cli.Command{
 					Usage: "Repository owner or organization name",
 				},
 			},
-			Action: cmdDeleteRepo,
+			Action: newDeleteCmd(func(ctx *cli.Context) (*spec.Model, error) {
+				m, err := spec.NewModel(spec.KindRepo)
+				if err != nil {
+					return nil, err
+				}
+				m.Metadata.Name = ctx.Args().First()
+				m.Metadata.Owner = ctx.String("owner")
+				return m, nil
+			}),
 		},
 		{
 			Name:  "readme",
@@ -49,7 +57,17 @@ var deleteCommand = &cli.Command{
 					Usage: "Repository owner or organization name",
 				},
 			},
-			Action: cmdDeleteReadme,
+			Action: newDeleteCmd(func(ctx *cli.Context) (*spec.Model, error) {
+				m, err := spec.NewModel(spec.KindReadme)
+				if err != nil {
+					return nil, err
+				}
+				spec := new(spec.Readme)
+				spec.Selector.Repository = ctx.Args().First()
+				m.Metadata.Owner = ctx.String("owner")
+				m.Spec = spec
+				return m, nil
+			}),
 		},
 		{
 			Name:  "hook",
@@ -64,7 +82,26 @@ var deleteCommand = &cli.Command{
 					Usage: "Repository where hook is installed",
 				},
 			},
-			Action: cmdDeleteHook,
+			Action: newDeleteCmd(func(ctx *cli.Context) (*spec.Model, error) {
+				m, err := spec.NewModel(spec.KindHook)
+				if err != nil {
+					return nil, err
+				}
+				id, err := strconv.ParseInt(ctx.Args().First(), 10, 64)
+				if err != nil {
+					return nil, err
+				}
+				m.Metadata.ID = &id
+				spec := new(spec.Hook)
+				if repo := ctx.String("repo"); repo != "" {
+					spec.Selector.Repository = repo
+					m.Metadata.Owner = ctx.String("owner")
+				} else {
+					spec.Selector.Organization = ctx.String("owner")
+				}
+				m.Spec = spec
+				return m, nil
+			}),
 		},
 		{
 			Name:  "team",
@@ -80,7 +117,23 @@ var deleteCommand = &cli.Command{
 					Usage: "Team ID",
 				},
 			},
-			Action: cmdDeleteTeam,
+			Action: newDeleteCmd(func(ctx *cli.Context) (*spec.Model, error) {
+				m, err := spec.NewModel(spec.KindTeam)
+				if err != nil {
+					return nil, err
+				}
+				m.Metadata.Name = ctx.Args().First()
+				m.Metadata.Owner = ctx.String("org")
+				if id := ctx.String("id"); id != "" {
+					iid, err := strconv.ParseInt(id, 10, 64)
+					if err != nil {
+						return nil, err
+					}
+					m.Metadata.ID = &iid
+
+				}
+				return m, nil
+			}),
 		},
 		{
 			Name:  "protection",
@@ -91,144 +144,39 @@ var deleteCommand = &cli.Command{
 					Usage: "Repository owner or organization name",
 				},
 			},
-			Action: cmdDeleteProtection,
+			Action: newDeleteCmd(func(ctx *cli.Context) (*spec.Model, error) {
+				m, err := spec.NewModel(spec.KindProtection)
+				if err != nil {
+					return nil, err
+				}
+				m.Metadata.Repo = ctx.Args().First()
+				m.Metadata.Name = ctx.Args().Get(1)
+				m.Metadata.Owner = ctx.String("owner")
+				return m, nil
+			}),
 		},
 	},
 }
 
-func cmdDeleteRepo(ctx *cli.Context) error {
-	token, err := resolveToken(ctx)
-	if err != nil {
-		return err
-	}
-	debug := os.Getenv("DEBUG") != ""
-	g, err := gitstrap.New(ctx.Context, token, debug)
-	if err != nil {
-		return err
-	}
-	m, err := spec.NewModel(spec.KindRepo)
-	if err != nil {
-		return err
-	}
-	m.Metadata.Name = ctx.Args().First()
-	m.Metadata.Owner = ctx.String("owner")
-	if err := g.Delete(m); err != nil {
-		return err
-	}
-	log.Printf("Deleted: %s", m.Info())
-	return nil
-}
-
-func cmdDeleteReadme(ctx *cli.Context) error {
-	token, err := resolveToken(ctx)
-	if err != nil {
-		return err
-	}
-	debug := os.Getenv("DEBUG") != ""
-	g, err := gitstrap.New(ctx.Context, token, debug)
-	if err != nil {
-		return err
-	}
-	m, err := spec.NewModel(spec.KindReadme)
-	if err != nil {
-		return err
-	}
-	spec := new(spec.Readme)
-	spec.Selector.Repository = ctx.Args().First()
-	m.Metadata.Owner = ctx.String("owner")
-	m.Spec = spec
-	if err := g.Delete(m); err != nil {
-		return err
-	}
-	log.Printf("Deleted: %s", m.Info())
-	return nil
-}
-
-func cmdDeleteHook(ctx *cli.Context) error {
-	token, err := resolveToken(ctx)
-	if err != nil {
-		return err
-	}
-	debug := os.Getenv("DEBUG") != ""
-	g, err := gitstrap.New(ctx.Context, token, debug)
-	if err != nil {
-		return err
-	}
-	m, err := spec.NewModel(spec.KindHook)
-	if err != nil {
-		return err
-	}
-	id, err := strconv.ParseInt(ctx.Args().First(), 10, 64)
-	if err != nil {
-		return err
-	}
-	m.Metadata.ID = &id
-	spec := new(spec.Hook)
-	if repo := ctx.String("repo"); repo != "" {
-		spec.Selector.Repository = repo
-		m.Metadata.Owner = ctx.String("owner")
-	} else {
-		spec.Selector.Organization = ctx.String("owner")
-	}
-	m.Spec = spec
-	if err := g.Delete(m); err != nil {
-		return err
-	}
-	log.Printf("Deleted: %s", m.Info())
-	return nil
-}
-
-func cmdDeleteTeam(ctx *cli.Context) error {
-	token, err := resolveToken(ctx)
-	if err != nil {
-		return err
-	}
-	debug := os.Getenv("DEBUG") != ""
-	g, err := gitstrap.New(ctx.Context, token, debug)
-	if err != nil {
-		return err
-	}
-	m, err := spec.NewModel(spec.KindTeam)
-	if err != nil {
-		return err
-	}
-	m.Metadata.Name = ctx.Args().First()
-	m.Metadata.Owner = ctx.String("org")
-	if id := ctx.String("id"); id != "" {
-		iid, err := strconv.ParseInt(id, 10, 64)
+func newDeleteCmd(model func(*cli.Context) (*spec.Model, error)) func(*cli.Context) error {
+	return func(ctx *cli.Context) error {
+		token, err := resolveToken(ctx)
 		if err != nil {
 			return err
 		}
-		m.Metadata.ID = &iid
-
+		debug := os.Getenv("DEBUG") != ""
+		g, err := gitstrap.New(ctx.Context, token, debug)
+		if err != nil {
+			return err
+		}
+		m, err := model(ctx)
+		if err != nil {
+			return err
+		}
+		if err := g.Delete(m); err != nil {
+			return err
+		}
+		log.Printf("Deleted: %s", m.Info())
+		return nil
 	}
-	if err := g.Delete(m); err != nil {
-		return err
-	}
-	log.Printf("Deleted: %s", m.Info())
-	return nil
-}
-
-func cmdDeleteProtection(ctx *cli.Context) error {
-	token, err := resolveToken(ctx)
-	if err != nil {
-		return err
-	}
-	debug := os.Getenv("DEBUG") != ""
-	g, err := gitstrap.New(ctx.Context, token, debug)
-	if err != nil {
-		return err
-	}
-	m, err := spec.NewModel(spec.KindProtection)
-	if err != nil {
-		return err
-	}
-	m.Metadata.Repo = ctx.Args().First()
-	m.Metadata.Name = ctx.Args().Get(1)
-	m.Metadata.Owner = ctx.String("owner")
-	if err := g.Delete(m); err != nil {
-		return err
-	}
-	log.Printf("Deleted: %s", m.Info())
-	return nil
 }
