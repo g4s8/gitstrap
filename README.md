@@ -21,6 +21,10 @@ It helps to: 1) create new repository on Github 2) manage repositories permissio
 
 See Wiki for [full documentation](https://github.com/g4s8/gitstrap/wiki/Specifications).
 
+# Demo
+
+[![asciicast](https://asciinema.org/a/8osX5LA58JBpBfK4II4Gn8cLb.svg)](https://asciinema.org/a/8osX5LA58JBpBfK4II4Gn8cLb)
+
 # Quickstart
 
  1. Download `gitstrap` CLI (see [Install](#install) section)
