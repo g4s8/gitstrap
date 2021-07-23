@@ -29,6 +29,7 @@ func main() {
 			createCommand,
 			deleteCommand,
 			applyCommand,
+			initCommand,
 		},
 	}
 	if err := app.Run(os.Args); err != nil {

@@ -27,15 +27,15 @@ const (
 type Repo struct {
 	Description         *string  `yaml:"description,omitempty"`
 	Homepage            *string  `yaml:"homepage,omitempty"`
-	DefaultBranch       string   `yaml:"defaultBranch,omitempty"`
-	MergeStrategy       []string `yaml:"mergeStrategy,omitempty"`
+	DefaultBranch       string   `yaml:"defaultBranch,omitempty" default:"master"`
+	MergeStrategy       []string `yaml:"mergeStrategy,omitempty" default:"[\"merge\"]"`
 	DeleteBranchOnMerge *bool    `yaml:"deleteBranchOnMerge,omitempty"`
 	Topics              []string `yaml:"topics,omitempty"`
 	Archived            *bool    `yaml:"archived,omitempty"`
 	Disabled            *bool    `yaml:"disabled,omitempty"`
-	License             *string  `json:"license,omitempty"`
-	Visibiliy           *string  `yaml:"visibility,omitempty"`
-	Features            []string `yaml:"features"`
+	License             *string  `yaml:"license,omitempty"`
+	Visibiliy           *string  `yaml:"visibility,omitempty" default:"public"`
+	Features            []string `yaml:"features,omitempty"`
 }
 
 func (spec *Repo) FromGithub(repo *github.Repository) {
