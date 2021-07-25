@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	stubOrg   = "exampleOrg"
-	stubRepo  = "exampleRepo"
-	stubOwner = "exampleOwner"
-	stubTeam  = "exampleTeam"
+	stubOrg    = "exampleOrg"
+	stubRepo   = "exampleRepo"
+	stubOwner  = "exampleOwner"
+	stubTeam   = "exampleTeam"
+	stubBranch = "master"
 )
 
 var initCommand = &cli.Command{
@@ -177,7 +178,43 @@ var initCommand = &cli.Command{
 				}
 				if slug := ctx.String("slug"); slug != "" {
 					m.Metadata.Name = slug
-					spec.Name = slug
+				}
+				spec.Name = ctx.Args().First()
+				m.Spec = spec
+				return m, nil
+			}),
+		},
+		{
+			Name:  "prot",
+			Usage: "Generate branch protection stub",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:  "owner",
+					Usage: "Repository owner",
+				},
+				&cli.StringFlag{
+					Name:  "repo",
+					Usage: "Repository name",
+				},
+			},
+			Action: initCmd(func(ctx *cli.Context) (*spec.Model, error) {
+				m, err := spec.NewModel(spec.KindProtection)
+				spec := new(spec.Protection)
+				if err != nil {
+					return nil, err
+				}
+				if owner := ctx.String("owner"); owner != "" {
+					m.Metadata.Owner = owner
+				} else {
+					m.Metadata.Owner = stubOrg
+				}
+				if repo := ctx.String("repo"); repo != "" {
+					m.Metadata.Repo = stubRepo
+				}
+				if branch := ctx.Args().First(); branch != "" {
+					m.Metadata.Name = branch
+				} else {
+					m.Metadata.Name = stubBranch
 				}
 				m.Spec = spec
 				return m, nil
