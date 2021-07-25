@@ -97,7 +97,7 @@ func cmdGetOrg(c *cli.Context) error {
 	}
 	name := c.Args().First()
 	if name == "" {
-		return fmt.Errorf("Requires repository name argument")
+		return fmt.Errorf("Requires organization name argument")
 	}
 	debug := os.Getenv("DEBUG") != ""
 	g, err := gitstrap.New(c.Context, token, debug)

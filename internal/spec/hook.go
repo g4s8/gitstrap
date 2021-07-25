@@ -1,17 +1,18 @@
 package spec
 
 import (
-	"github.com/google/go-github/v36/github"
 	"strconv"
+
+	"github.com/google/go-github/v36/github"
 )
 
 type Hook struct {
-	URL         string   `yaml:"url"`
-	ContentType string   `yaml:"contentType"`
-	InsecureSsl bool     `yaml:"insecureSsl,omitempty"`
+	URL         string   `yaml:"url" default:"http://example.com/hook"`
+	ContentType string   `yaml:"contentType" default:"json"`
+	InsecureSsl bool     `yaml:"insecureSsl,omitempty" default:"true"`
 	Secret      string   `yaml:"secret,omitempty"`
-	Events      []string `yaml:"events,omitempty"`
-	Active      bool     `yaml:"active"`
+	Events      []string `yaml:"events,omitempty" default:"[\"push\"]"`
+	Active      bool     `yaml:"active" default:"true"`
 	Selector    struct {
 		Repository   string `yaml:"repository,omitempty"`
 		Organization string `yaml:"organization,omitempty"`
