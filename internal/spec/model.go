@@ -163,7 +163,7 @@ func (m *Model) MarshalYAML() (interface{}, error) {
 		*M   `yaml:",inline"`
 		Spec interface{} `yaml:"spec"`
 	}
-	t := &temp{(*M)(m), &m.Spec}
+	t := &temp{(*M)(m), m.Spec}
 	return t, nil
 }
 

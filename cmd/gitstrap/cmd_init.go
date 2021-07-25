@@ -5,6 +5,7 @@ import (
 
 	"github.com/creasty/defaults"
 	"github.com/g4s8/gitstrap/internal/spec"
+	"github.com/g4s8/gitstrap/internal/utils"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -12,8 +13,6 @@ import (
 const (
 	stubOrg    = "exampleOrg"
 	stubRepo   = "exampleRepo"
-	stubOwner  = "exampleOwner"
-	stubTeam   = "exampleTeam"
 	stubBranch = "master"
 )
 
@@ -38,7 +37,7 @@ var initCommand = &cli.Command{
 					Usage: "Repository owner or organization name",
 				},
 			},
-			Action: initCmd(func(ctx *cli.Context) (*spec.Model, error) {
+			Action: newInitCmd(func(ctx *cli.Context) (*spec.Model, error) {
 				m, err := spec.NewModel(spec.KindRepo)
 				if err != nil {
 					return nil, err
@@ -62,22 +61,30 @@ var initCommand = &cli.Command{
 					Name:  "id",
 					Usage: "Organization ID",
 				},
+				&cli.StringFlag{
+					Name:  "login",
+					Usage: "Organization login",
+				},
 			},
-			Action: initCmd(func(ctx *cli.Context) (*spec.Model, error) {
+			Action: newInitCmd(func(ctx *cli.Context) (*spec.Model, error) {
 				m, err := spec.NewModel(spec.KindOrg)
 				if err != nil {
 					return nil, err
 				}
+				spec := new(spec.Org)
 				if n := ctx.Args().First(); n != "" {
-					m.Metadata.Name = n
+					spec.Name = n
 				} else {
-					m.Metadata.Name = stubOrg
+					spec.Name = stubOrg
+				}
+				if l := ctx.String("login"); l != "" {
+					m.Metadata.Name = l
+				} else {
+					m.Metadata.Name = spec.Name
 				}
 				if ID := ctx.Int64("id"); ID != 0 {
 					m.Metadata.ID = &ID
 				}
-				spec := new(spec.Org)
-				spec.Name = m.Metadata.Name
 				m.Spec = spec
 				return m, nil
 			}),
@@ -99,7 +106,7 @@ var initCommand = &cli.Command{
 					Usage: "Name of repository for this hook",
 				},
 			},
-			Action: initCmd(func(ctx *cli.Context) (*spec.Model, error) {
+			Action: newInitCmd(func(ctx *cli.Context) (*spec.Model, error) {
 				m, err := spec.NewModel(spec.KindHook)
 				if ID := ctx.Int64("id"); ID != 0 {
 					m.Metadata.ID = &ID
@@ -130,7 +137,7 @@ var initCommand = &cli.Command{
 					Usage: "Name of repository where this readme will be created",
 				},
 			},
-			Action: initCmd(func(ctx *cli.Context) (*spec.Model, error) {
+			Action: newInitCmd(func(ctx *cli.Context) (*spec.Model, error) {
 				m, err := spec.NewModel(spec.KindReadme)
 				spec := new(spec.Readme)
 				if err != nil {
@@ -162,7 +169,7 @@ var initCommand = &cli.Command{
 					Usage: "Team ID",
 				},
 			},
-			Action: initCmd(func(ctx *cli.Context) (*spec.Model, error) {
+			Action: newInitCmd(func(ctx *cli.Context) (*spec.Model, error) {
 				m, err := spec.NewModel(spec.KindTeam)
 				spec := new(spec.Team)
 				if err != nil {
@@ -185,7 +192,7 @@ var initCommand = &cli.Command{
 			}),
 		},
 		{
-			Name:  "prot",
+			Name:  "protection",
 			Usage: "Generate branch protection stub",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
@@ -197,7 +204,7 @@ var initCommand = &cli.Command{
 					Usage: "Repository name",
 				},
 			},
-			Action: initCmd(func(ctx *cli.Context) (*spec.Model, error) {
+			Action: newInitCmd(func(ctx *cli.Context) (*spec.Model, error) {
 				m, err := spec.NewModel(spec.KindProtection)
 				spec := new(spec.Protection)
 				if err != nil {
@@ -223,7 +230,7 @@ var initCommand = &cli.Command{
 	},
 }
 
-func initCmd(model func(*cli.Context) (*spec.Model, error)) func(*cli.Context) error {
+func newInitCmd(model func(*cli.Context) (*spec.Model, error)) func(*cli.Context) error {
 	return func(ctx *cli.Context) error {
 		m, err := model(ctx)
 		if err != nil {
@@ -233,7 +240,7 @@ func initCmd(model func(*cli.Context) (*spec.Model, error)) func(*cli.Context) e
 			return err
 		}
 		if ctx.Bool("full") {
-			s, err := spec.RemoveTagsOmitempty(m.Spec)
+			s, err := utils.RemoveTagsOmitempty(m.Spec, "yaml")
 			if err != nil {
 				return err
 			}

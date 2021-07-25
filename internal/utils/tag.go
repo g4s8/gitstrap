@@ -1,4 +1,4 @@
-package spec
+package utils
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/fatih/structtag"
 )
 
-func RemoveTagsOmitempty(s interface{}) (interface{}, error) {
+func RemoveTagsOmitempty(s interface{}, key string) (interface{}, error) {
 	var value reflect.Value
 	if reflect.TypeOf(s).Kind() == reflect.Ptr {
 		value = reflect.Indirect(reflect.ValueOf(s))
@@ -17,26 +17,26 @@ func RemoveTagsOmitempty(s interface{}) (interface{}, error) {
 	t := value.Type()
 	sf := make([]reflect.StructField, 0)
 	for i := 0; i < t.NumField(); i++ {
-		sf = append(sf, t.Field(i))
-		tag := t.Field(i).Tag
-		tag, err := editTag(tag)
+		field := t.Field(i)
+		tag, err := removeOmitempty(field.Tag, "yaml")
 		if err != nil {
 			return nil, err
 		}
-		sf[i].Tag = tag
+		field.Tag = tag
+		sf = append(sf, field)
 	}
 	newType := reflect.StructOf(sf)
 	newValue := value.Convert(newType)
 	return newValue.Interface(), nil
 }
 
-func editTag(tag reflect.StructTag) (reflect.StructTag, error) {
+func removeOmitempty(tag reflect.StructTag, key string) (reflect.StructTag, error) {
 	newTag := *new(reflect.StructTag)
 	tags, err := structtag.Parse(string(tag))
 	if err != nil {
 		return newTag, err
 	}
-	yamlTag, err := tags.Get("yaml")
+	yamlTag, err := tags.Get(key)
 	if err != nil {
 		return newTag, err
 	}
