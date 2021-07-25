@@ -33,7 +33,7 @@ var initCommand = &cli.Command{
 					m.Metadata.Name = "repo"
 				}
 				m.Metadata.Owner = ctx.String("owner")
-				spec := *new(spec.Repo)
+				spec := new(spec.Repo)
 				m.Spec = spec
 				return m, nil
 			}),
@@ -55,15 +55,15 @@ func initCmd(model func(*cli.Context) (*spec.Model, error)) func(*cli.Context) e
 		if err != nil {
 			return err
 		}
-		s := new(spec.Repo)
-		if err := defaults.Set(s); err != nil {
-			panic(err)
+		if err := defaults.Set(m.Spec); err != nil {
+			return err
 		}
 		if ctx.Bool("full") {
-			spe, _ := spec.RemoveTagsOmitempty(*s)
-			m.Spec = spe
-		} else {
-			m.Spec = s
+			sp, err := spec.RemoveTagsOmitempty(m.Spec)
+			if err != nil {
+				return err
+			}
+			m.Spec = sp
 		}
 		return yaml.NewEncoder(os.Stdout).Encode(m)
 	}

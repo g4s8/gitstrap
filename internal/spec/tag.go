@@ -8,7 +8,12 @@ import (
 )
 
 func RemoveTagsOmitempty(s interface{}) (interface{}, error) {
-	value := reflect.ValueOf(s)
+	var value reflect.Value
+	if reflect.TypeOf(s).Kind() == reflect.Ptr {
+		value = reflect.Indirect(reflect.ValueOf(s))
+	} else {
+		value = reflect.ValueOf(s)
+	}
 	t := value.Type()
 	sf := make([]reflect.StructField, 0)
 	for i := 0; i < t.NumField(); i++ {
@@ -35,9 +40,9 @@ func editTag(tag reflect.StructTag) (reflect.StructTag, error) {
 	if err != nil {
 		return newTag, err
 	}
-	for ii, v := range yamlTag.Options {
+	for i, v := range yamlTag.Options {
 		if v == "omitempty" {
-			yamlTag.Options = append(yamlTag.Options[:ii], yamlTag.Options[ii+1:]...)
+			yamlTag.Options = append(yamlTag.Options[:i], yamlTag.Options[i+1:]...)
 		}
 	}
 	stringTags := fmt.Sprintf(`%v`, tags)
