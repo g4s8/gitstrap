@@ -9,7 +9,7 @@ import (
 type Hook struct {
 	URL         string   `yaml:"url" default:"http://example.com/hook"`
 	ContentType string   `yaml:"contentType" default:"json"`
-	InsecureSsl bool     `yaml:"insecureSsl,omitempty" default:"true"`
+	InsecureSsl bool     `yaml:"insecureSsl,omitempty" default:"false"`
 	Secret      string   `yaml:"secret,omitempty"`
 	Events      []string `yaml:"events,omitempty" default:"[\"push\"]"`
 	Active      bool     `yaml:"active" default:"true"`

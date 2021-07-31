@@ -57,10 +57,6 @@ var initCommand = &cli.Command{
 			Name:  "org",
 			Usage: "Generate org stub",
 			Flags: []cli.Flag{
-				&cli.Int64Flag{
-					Name:  "id",
-					Usage: "Organization ID",
-				},
 				&cli.StringFlag{
 					Name:  "login",
 					Usage: "Organization login",
@@ -82,9 +78,6 @@ var initCommand = &cli.Command{
 				} else {
 					m.Metadata.Name = spec.Name
 				}
-				if ID := ctx.Int64("id"); ID != 0 {
-					m.Metadata.ID = &ID
-				}
 				m.Spec = spec
 				return m, nil
 			}),
@@ -93,10 +86,6 @@ var initCommand = &cli.Command{
 			Name:  "hook",
 			Usage: "Generate hook stub",
 			Flags: []cli.Flag{
-				&cli.Int64Flag{
-					Name:  "id",
-					Usage: "Hook ID, required on update",
-				},
 				&cli.StringFlag{
 					Name:  "owner",
 					Usage: "Repository owner or organization name",
@@ -108,9 +97,6 @@ var initCommand = &cli.Command{
 			},
 			Action: newInitCmd(func(ctx *cli.Context) (*spec.Model, error) {
 				m, err := spec.NewModel(spec.KindHook)
-				if ID := ctx.Int64("id"); ID != 0 {
-					m.Metadata.ID = &ID
-				}
 				spec := new(spec.Hook)
 				if err != nil {
 					return nil, err
@@ -164,19 +150,12 @@ var initCommand = &cli.Command{
 					Name:  "owner",
 					Usage: "Organization to which the team belongs",
 				},
-				&cli.Int64Flag{
-					Name:  "id",
-					Usage: "Team ID",
-				},
 			},
 			Action: newInitCmd(func(ctx *cli.Context) (*spec.Model, error) {
 				m, err := spec.NewModel(spec.KindTeam)
 				spec := new(spec.Team)
 				if err != nil {
 					return nil, err
-				}
-				if ID := ctx.Int64("id"); ID != 0 {
-					m.Metadata.ID = &ID
 				}
 				if owner := ctx.String("owner"); owner != "" {
 					m.Metadata.Owner = owner
