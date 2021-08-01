@@ -5,7 +5,7 @@ import (
 )
 
 type Team struct {
-	Name        string `yaml:"name,omitempty"`
+	Name        string `yaml:"name,omitempty" default:"NewTeam"`
 	Description string `yaml:"description,omitempty"`
 	Permission  string `yaml:"permission,omitempty"`
 	Privacy     string `yaml:"privacy,omitempty"`
