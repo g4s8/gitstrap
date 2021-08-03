@@ -1,5 +1,7 @@
 ## v2.2
 
+ - feat(init): init commands to generate stub files (#81)
+ - feature(delete): delete commands for teams, protections, readmes and hooks
  - feature(delete): delete repo command
  - refactoring(pagination): implemented pagination utils
  - docs(protections): added branch protection spec to wiki
