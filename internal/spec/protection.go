@@ -1,7 +1,7 @@
 package spec
 
 import (
-	"github.com/google/go-github/v36/github"
+	"github.com/google/go-github/v38/github"
 )
 
 // Protection rule of repositry branch
@@ -47,6 +47,9 @@ type Protection struct {
 		// Apps with push access
 		Apps []string `yaml:"apps,omitempty"`
 	} `yaml:"permissions,omitempty"`
+	// ConversationResolution, if set to true, requires all comments
+	// on the pull request to be resolved before it can be merged to a protected branch.
+	ConversationResolution bool `yaml:"conversationResolution,omitempty"`
 }
 
 func (bp *Protection) FromGithub(g *github.Protection) error {
@@ -102,6 +105,9 @@ func (bp *Protection) FromGithub(g *github.Protection) error {
 			bp.Permissions.Apps[i] = a.GetSlug()
 		}
 	}
+	if cr := g.RequiredConversationResolution; cr != nil {
+		bp.ConversationResolution = cr.Enabled
+	}
 	return nil
 }
 
@@ -119,6 +125,7 @@ func (bp *Protection) ToGithub(pr *github.ProtectionRequest) error {
 	if bp.Permissions.Restrict {
 		pr.Restrictions = bp.permissionsToGithub()
 	}
+	pr.RequiredConversationResolution = &bp.ConversationResolution
 	return nil
 }
 

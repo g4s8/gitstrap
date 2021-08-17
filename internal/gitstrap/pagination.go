@@ -1,7 +1,7 @@
 package gitstrap
 
 import (
-	"github.com/google/go-github/v36/github"
+	"github.com/google/go-github/v38/github"
 )
 
 type pagination struct {
