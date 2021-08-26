@@ -3,7 +3,7 @@ package spec
 import (
 	"strconv"
 
-	"github.com/google/go-github/v36/github"
+	"github.com/google/go-github/v38/github"
 )
 
 type Hook struct {

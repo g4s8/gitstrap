@@ -3,7 +3,7 @@ package github
 import (
 	"context"
 
-	gh "github.com/google/go-github/v36/github"
+	gh "github.com/google/go-github/v38/github"
 )
 
 func OrgExist(cli *gh.Client, ctx context.Context, name string) (bool, error) {
