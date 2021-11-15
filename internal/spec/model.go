@@ -63,11 +63,9 @@ func NewModel(kind Kind) (*Model, error) {
 	if err := kind.validate(); err != nil {
 		return nil, err
 	}
-	m := new(Model)
-	m.Version = Version
-	m.Kind = kind
-	m.Metadata = new(Metadata)
-	return m, nil
+	meta := new(Metadata)
+	meta.Annotations = make(map[string]string)
+	return &Model{Version: Version, Kind: kind, Metadata: meta}, nil
 }
 
 type errUnknownKind struct {
