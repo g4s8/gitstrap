@@ -5,25 +5,25 @@
 [![codebeat badge](https://codebeat.co/badges/89bbb569-fba9-4c68-9b21-e2520b59fbeb)](https://codebeat.co/projects/github-com-g4s8-gitstrap-master)
 
 [![GitHub release](https://img.shields.io/github/release/g4s8/gitstrap.svg?label=version)](https://github.com/g4s8/gitstrap/releases/latest)
-[![PDD status](http://www.0pdd.com/svg?name=g4s8/gitstrap)](http://www.0pdd.com/p?name=g4s8/gitstrap)
-[![License](https://img.shields.io/github/license/g4s8/gitstrap.svg?style=flat-square)](https://github.com/g4s8/gitstrap/blob/master/LICENSE)
 
 Manage your GitHub repositories as a set of resouce configuration files!
 
 Gitstrap automates routine operations with Github.
 It can create and configure Github repositories, teams, readmes, organizations, etc
 from `yaml` specification files.
-It helps to: 1) create new repository on Github 2) manage repositories permissions
-3) keep all organization repositories configuration in yaml files in one directory
-4) configure webhooks for Github repo 5) configure branch protection rules
-6) many others
+It helps to:
+ * Create new repository on Github;
+ * Manage repositories permissions;
+ * Keep all organization repositories configuration in yaml files in one directory;
+ * Configure webhooks for Github repo 5) configure branch protection rules;
+ * Other repo management tasks;
 
 
 See Wiki for [full documentation](https://github.com/g4s8/gitstrap/wiki/Specifications).
 
 # Demo
 
-[![asciicast](https://asciinema.org/a/8osX5LA58JBpBfK4II4Gn8cLb.svg)](https://asciinema.org/a/8osX5LA58JBpBfK4II4Gn8cLb)
+[![asciicast](https://asciinema.org/a/504401.svg)](https://asciinema.org/a/504401)
 
 # Quickstart
 
