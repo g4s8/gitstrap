@@ -1,7 +1,6 @@
 package gitstrap
 
 import (
-	"errors"
 	"fmt"
 
 	gh "github.com/g4s8/gitstrap/internal/github"
@@ -60,8 +59,6 @@ func (g *Gitstrap) applyRepo(m *spec.Model) error {
 	return nil
 }
 
-var errHookSelectorEmpty = errors.New("Hook selector is empty: requires repository or organization")
-
 func (g *Gitstrap) applyHook(m *spec.Model) error {
 	ctx, cancel := g.newContext()
 	defer cancel()
@@ -110,7 +107,7 @@ func (g *Gitstrap) applyOrg(m *spec.Model) error {
 		return err
 	}
 	if !exist {
-		return fmt.Errorf("Organization %v does not exist.", name)
+		return fmt.Errorf("organization %v does not exist.", name)
 	}
 	org := new(github.Organization)
 	if err := o.ToGithub(org); err != nil {

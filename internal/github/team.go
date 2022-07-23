@@ -8,10 +8,22 @@ import (
 
 func TeamExistBySlug(cli *gh.Client, ctx context.Context, org, slug string) (bool, error) {
 	_, _, err := cli.Teams.GetTeamBySlug(ctx, org, slug)
-	return resolveResponseByErr(err)
+	if isNotFound(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func TeamExistByID(cli *gh.Client, ctx context.Context, org, ID int64) (bool, error) {
 	_, _, err := cli.Teams.GetTeamByID(ctx, org, ID)
-	return resolveResponseByErr(err)
+	if isNotFound(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

@@ -8,7 +8,13 @@ import (
 
 func OrgExist(cli *gh.Client, ctx context.Context, name string) (bool, error) {
 	_, _, err := cli.Organizations.Get(ctx, name)
-	return resolveResponseByErr(err)
+	if isNotFound(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, err
 }
 
 func GetOrgIdByName(cli *gh.Client, ctx context.Context, name string) (int64, error) {
