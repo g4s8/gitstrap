@@ -7,14 +7,6 @@ import (
 	"github.com/google/go-github/v38/github"
 )
 
-type errUnsupportModelKind struct {
-	kind spec.Kind
-}
-
-func (e *errUnsupportModelKind) Error() string {
-	return fmt.Sprintf("Unsupported model kind: `%s`", e.kind)
-}
-
 func (g *Gitstrap) Create(m *spec.Model) error {
 	switch m.Kind {
 	case spec.KindRepo:
@@ -58,22 +50,6 @@ func (g *Gitstrap) createRepo(m *spec.Model) error {
 	repo.FromGithub(r)
 	m.Spec = repo
 	return nil
-}
-
-type errReadmeExists struct {
-	owner, repo string
-}
-
-func (e *errReadmeExists) Error() string {
-	return fmt.Sprintf("README.md already exists in %s/%s (try --force for replacing it)", e.owner, e.repo)
-}
-
-type errReadmeNotFile struct {
-	rtype string
-}
-
-func (e *errReadmeNotFile) Error() string {
-	return fmt.Sprintf("README is no a file: `%s`", e.rtype)
 }
 
 func (g *Gitstrap) createReadme(m *spec.Model) error {

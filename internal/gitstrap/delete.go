@@ -1,7 +1,6 @@
 package gitstrap
 
 import (
-	"errors"
 	"fmt"
 
 	gh "github.com/g4s8/gitstrap/internal/github"
@@ -38,14 +37,6 @@ func (g *Gitstrap) deleteRepo(m *spec.Model) error {
 		return err
 	}
 	return nil
-}
-
-type errReadmeNotExists struct {
-	owner, repo string
-}
-
-func (e *errReadmeNotExists) Error() string {
-	return fmt.Sprintf("README `%s/%s` doesn't exist", e.owner, e.repo)
 }
 
 func (g *Gitstrap) deleteReadme(m *spec.Model) error {
@@ -88,8 +79,6 @@ func (g *Gitstrap) deleteReadme(m *spec.Model) error {
 	}
 	return nil
 }
-
-var errHookIdRequired = errors.New("Hook metadata ID required")
 
 func (g *Gitstrap) deleteHook(m *spec.Model) error {
 	ctx, cancel := g.newContext()
