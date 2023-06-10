@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -43,7 +42,7 @@ func resolveToken(c *cli.Context) (string, error) {
 		return token, nil
 	}
 	file := os.Getenv("HOME") + "/.config/gitstrap/github_token.txt"
-	if bin, err := ioutil.ReadFile(file); err == nil {
+	if bin, err := os.ReadFile(file); err == nil {
 		return strings.Trim(string(bin), "\n"), nil
 	}
 	return "", fmt.Errorf("GitHub token neither given as a flag, nor found in %s", file)

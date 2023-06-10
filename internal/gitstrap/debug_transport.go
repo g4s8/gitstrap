@@ -2,7 +2,7 @@ package gitstrap
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -16,8 +16,8 @@ func (t *logTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	log.Printf("[%s] >>> %s %s", t.tag, req.Method, req.URL)
 	if req.Body != nil {
 		defer req.Body.Close()
-		if data, err := ioutil.ReadAll(req.Body); err == nil {
-			req.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+		if data, err := io.ReadAll(req.Body); err == nil {
+			req.Body = io.NopCloser(bytes.NewBuffer(data))
 			log.Print(string(data))
 		}
 	}
@@ -28,8 +28,8 @@ func (t *logTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		log.Printf("[%s] %s <<< %d", t.tag, req.URL, rsp.StatusCode)
 		if rsp.Body != nil {
 			defer rsp.Body.Close()
-			if data, err := ioutil.ReadAll(rsp.Body); err == nil {
-				rsp.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+			if data, err := io.ReadAll(rsp.Body); err == nil {
+				rsp.Body = io.NopCloser(bytes.NewBuffer(data))
 				log.Print(string(data))
 			}
 		}
