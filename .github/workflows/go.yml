@@ -5,13 +5,13 @@ name: CI
   pull_request:
     branches: ["master"]
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: '1.20'
       - uses: actions/cache@v2
         with:
           path: ~/go/pkg/mod
@@ -20,29 +20,16 @@ jobs:
             ${{ runner.os }}-go-
       - name: Build
         run: make build
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.17
-      - uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Test
+      - name: test
         run: make test
+      - name: Test race
+        run: make test-race
   lint:
+    needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
-      - name: lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: v1.43.0
+          go-version: '1.20'
+      - uses: actions/checkout@v3
+      - uses: golangci/golangci-lint-action@v3
