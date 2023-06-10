@@ -55,9 +55,7 @@ type Protection struct {
 func (bp *Protection) FromGithub(g *github.Protection) error {
 	if c := g.RequiredStatusChecks; c != nil {
 		bp.Checks = make([]string, len(c.Contexts))
-		for i, name := range c.Contexts {
-			bp.Checks[i] = name
-		}
+		copy(bp.Checks, c.Contexts)
 		bp.Strict = c.Strict
 	}
 	if p := g.RequiredPullRequestReviews; p != nil {
