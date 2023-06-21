@@ -7,7 +7,7 @@ require (
 	github.com/fatih/structtag v1.2.0
 	github.com/g4s8/go-matchers v0.0.0-20201209072131-8aaefc3fcb9c
 	github.com/google/go-github/v38 v38.1.0
-	github.com/urfave/cli/v2 v2.25.6
+	github.com/urfave/cli/v2 v2.25.7
 	golang.org/x/oauth2 v0.8.0
 	gopkg.in/yaml.v3 v3.0.1
 )
