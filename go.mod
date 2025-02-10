@@ -3,7 +3,7 @@ module github.com/g4s8/gitstrap
 go 1.20
 
 require (
-	github.com/creasty/defaults v1.7.0
+	github.com/creasty/defaults v1.8.0
 	github.com/fatih/structtag v1.2.0
 	github.com/g4s8/go-matchers v0.0.0-20201209072131-8aaefc3fcb9c
 	github.com/google/go-github/v38 v38.1.0
