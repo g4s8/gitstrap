@@ -1,6 +1,6 @@
 module github.com/g4s8/gitstrap
 
-go 1.20
+go 1.24.0
 
 require (
 	github.com/creasty/defaults v1.8.0
@@ -8,7 +8,7 @@ require (
 	github.com/g4s8/go-matchers v0.0.0-20201209072131-8aaefc3fcb9c
 	github.com/google/go-github/v38 v38.1.0
 	github.com/urfave/cli/v2 v2.27.5
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.34.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
